@@ -1,5 +1,7 @@
 # tehai （手配）
 
+**English** | [日本語](README.ja.md)
+
 > A **controlled, auditable delegation layer**. It turns a request into a DAG of
 > small, contract-bound subtasks, routes each to the *cheapest capable* model,
 > reviews by risk, judges, and logs — under hard budgets, bounded recursion, and
@@ -131,7 +133,7 @@ tehai/
 │   ├── schemas/*.json                        (Task Contract / Agent / Log)
 │   └── data/agents/registry.json             (seed Agent Registry)
 ├── examples/sample_run.py
-├── tests/                  (81 tests, stdlib unittest)
+├── tests/                  (216 tests, stdlib unittest)
 ├── README.md  ASSUMPTIONS.md  FUTURE.md  pyproject.toml
 ```
 
@@ -300,7 +302,7 @@ on a failed task, `review` on a revise/discard/rerun — so CI can gate on any.
 
 ## 12. Tests
 
-81 stdlib `unittest` tests — contract validation, weighted routing & every
+216 stdlib `unittest` tests — contract validation, weighted routing & every
 escalation, all guard rejection reasons, permission subset, risk-based review,
 judge precedence, registry/org integrity, the mini schema validator, and an
 end-to-end orchestration check (≥3 contracts, all schema-valid, topo order,
