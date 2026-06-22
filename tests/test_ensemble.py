@@ -5,7 +5,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(__file__))
 
 from tehai.backends import EnsembleBackend, ModelBackend
-from tehai.config import ensemble_from_config
+from tehai.config import build_backend, ensemble_from_config
 from tehai.models import ModelTier
 
 
@@ -104,6 +104,36 @@ class TestEnsembleFromConfig(unittest.TestCase):
     def test_missing_spec_raises(self):
         with self.assertRaises(ValueError):
             ensemble_from_config({"ensemble": {}})
+
+
+class TestBuildBackend(unittest.TestCase):
+    def test_plain(self):
+        from tehai.backends import EchoBackend
+        self.assertIsInstance(build_backend({"backend": "echo"}), EchoBackend)
+
+    def test_tool_wraps_inner(self):
+        from tehai.backends import EchoBackend, ToolBackend
+        b = build_backend({"backend": "tool", "kwargs": {"inner": {"backend": "echo"}}})
+        self.assertIsInstance(b, ToolBackend)
+        self.assertIsInstance(b.backend, EchoBackend)
+
+    def test_ensemble_members(self):
+        from tehai.backends import EnsembleBackend
+        b = build_backend({"backend": "ensemble",
+                           "kwargs": {"members": [{"backend": "echo"}, {"backend": "null"}]}})
+        self.assertIsInstance(b, EnsembleBackend)
+        self.assertEqual(len(b.members), 2)
+
+    def test_gama_nested_composites(self):
+        from tehai.backends import GamaBackend, ToolBackend
+        b = build_backend({"backend": "gama", "kwargs": {
+            "backends": {"t": {"backend": "tool", "kwargs": {"inner": {"backend": "echo"}}},
+                         "e": {"backend": "echo"}},
+            "routing_table": {"qa": "t"}, "default": "e"}})
+        self.assertIsInstance(b, GamaBackend)
+        self.assertIsInstance(b.backends["t"], ToolBackend)
+        self.assertEqual(b.pick("qa"), "t")
+        self.assertEqual(b.pick("other"), "e")
 
 
 if __name__ == "__main__":

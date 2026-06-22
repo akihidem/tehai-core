@@ -162,6 +162,16 @@ Remaining hook points to add as CI stages (each already has a natural home):
   (useless) and naive ensembling (0.83), and is competitive with a 122B, fully local.** The
   combined's lone miss (a mod-arithmetic "reasoning" task sent to the ensemble) was a routing
   gap (compute-able reasoning should route → tool), not a capability gap. Small N, single run.
+- **Resolved (fair tokens + routing-fix attempt)**: at 8192 tokens the 122B recovers the
+  c1 code loss (it WAS truncation) but still misses c3 (roman numerals) — a genuine miss
+  where a 32B code-specialist beats the 122B reasoner. Final on the 12-case suite: the
+  sovereign light stack and the 122B **TIE at 0.92, with COMPLEMENTARY misses** (light
+  stack misses r4 day-of-week mod-arithmetic; 122B misses c3 roman). The attempted routing
+  fix (a tool member inside the research ensemble) did NOT rescue r4 — the synthesize
+  aggregator didn't adopt the tool's answer. Honest verdict: **structured light combination
+  is genuinely COMPETITIVE/tied with a 122B (not strictly better — the earlier apparent edge
+  was partly 122B truncation), fully local & sovereign.** Reproduce: `python3 -m
+  experiments.moa_vs_strong <config>` (see `examples/moa_vs_strong.example.json`).
 - **Sovereign remote floor ✅ (proven on a Mac Studio MLX)**: `ssh-openai` calls an
   OpenAI-compatible server (MLX `mlx_lm.server`, LM Studio, vLLM) over
   `ssh <host> curl localhost:<port>/v1/…` (prompt on stdin, no open port; 0.5–2 s/call).

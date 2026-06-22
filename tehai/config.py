@@ -109,3 +109,35 @@ def ensemble_from_config(source: Optional[Any]):
     return EnsembleBackend(members, strategy=spec.get("strategy", "synthesize"),
                            aggregator=aggregator,
                            aggregator_prompt=spec.get("aggregator_prompt"))
+
+
+def build_backend(spec: Any):
+    """Recursively build a backend from a spec ``{"backend": name, "kwargs": {...}}``.
+
+    Composites compose: ``tool`` wraps ``kwargs['inner']`` (a spec); ``ensemble`` takes
+    ``kwargs['members']`` (list of specs) or ``kwargs['member']`` + ``kwargs['n']`` plus
+    optional ``aggregator``/``strategy``; ``gama`` takes ``kwargs['backends']`` (name ->
+    spec) + ``routing_table`` + ``default``. Any other name goes to ``get_backend`` with
+    the remaining kwargs. Lets a config declare a full sovereign stack (gama over tool /
+    ensemble / coder lanes) as nested JSON.
+    """
+    from .backends import EnsembleBackend, GamaBackend, ToolBackend, get_backend
+
+    name = spec["backend"]
+    kw = dict(spec.get("kwargs") or {})
+    if name == "tool":
+        inner = build_backend(kw.pop("inner"))
+        return ToolBackend(inner, **kw)
+    if name == "ensemble":
+        if kw.get("members"):
+            members = [build_backend(m) for m in kw["members"]]
+        else:
+            members = [build_backend(kw["member"]) for _ in range(int(kw.get("n", 3)))]
+        agg = build_backend(kw["aggregator"]) if kw.get("aggregator") else None
+        return EnsembleBackend(members, strategy=kw.get("strategy", "synthesize"),
+                               aggregator=agg, aggregator_prompt=kw.get("aggregator_prompt"))
+    if name == "gama":
+        backends = {n: build_backend(s) for n, s in (kw.get("backends") or {}).items()}
+        return GamaBackend(backends, routing_table=kw.get("routing_table"),
+                           default=kw.get("default"))
+    return get_backend(name, **kw)
