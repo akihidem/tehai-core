@@ -1,5 +1,7 @@
 # FUTURE — extension plan
 
+**English** | [日本語](FUTURE.ja.md)
+
 **Status:** the original roadmap A–E is built (decompose → score → review →
 generate → execute → review-the-artifact → judge → FSM → log → evaluate → propose →
 adopt-by-config), grounded by an opt-in OS-isolated sandbox. What remains below is

@@ -1,5 +1,7 @@
 # ASSUMPTIONS
 
+**English** | [日本語](ASSUMPTIONS.ja.md)
+
 Reasonable assumptions made while building the MVP, per the spec's instruction to
 proceed without blocking and record them here. Each is cheap to revisit.
 
