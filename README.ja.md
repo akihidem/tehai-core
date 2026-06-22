@@ -2,6 +2,11 @@
 
 [English](README.md) | **日本語**
 
+[![CI](https://github.com/akihidem/tehai-core/actions/workflows/ci.yml/badge.svg)](https://github.com/akihidem/tehai-core/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Dependencies](https://img.shields.io/badge/deps-stdlib%20only-brightgreen.svg)](pyproject.toml)
+
 > **統制された、監査可能な委譲（delegation）レイヤー**。要求を、小さく契約で
 > 縛られたサブタスクの DAG に分解し、それぞれを *最も安く実行できるモデル* に
 > 振り分け、リスクに応じてレビューし、ジャッジし、ログに残す ── 厳格な予算、

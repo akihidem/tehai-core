@@ -2,6 +2,11 @@
 
 **English** | [日本語](README.ja.md)
 
+[![CI](https://github.com/akihidem/tehai-core/actions/workflows/ci.yml/badge.svg)](https://github.com/akihidem/tehai-core/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Dependencies](https://img.shields.io/badge/deps-stdlib%20only-brightgreen.svg)](pyproject.toml)
+
 > A **controlled, auditable delegation layer**. It turns a request into a DAG of
 > small, contract-bound subtasks, routes each to the *cheapest capable* model,
 > reviews by risk, judges, and logs — under hard budgets, bounded recursion, and
