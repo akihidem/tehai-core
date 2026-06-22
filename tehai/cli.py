@@ -14,14 +14,33 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .backends import get_backend
+from .config import ensemble_from_config, gama_from_config, load_config
 from .evaluation import EvaluationStore
 from .logger import ExecutionLogger
 from .model_router import ModelRouter
-from .models import RunPlan, TaskStatus
+from .models import ModelTier, RunPlan, TaskStatus
 from .orchestrator import Orchestrator
 from .org_templates import CATALOG
 from .registry import AgentRegistry
 from .sandbox import Sandbox
+
+
+BACKEND_CHOICES = ["null", "echo", "claude-cli", "claude-tui", "codex", "gemini", "ollama", "ssh-openai"]
+BACKEND_CHOICES_GAMA = BACKEND_CHOICES + ["gama", "ensemble"]
+
+
+def _backend_arg(args: argparse.Namespace):
+    """Backend to hand to Orchestrator.default: a GamaBackend (vendor router) for
+    'gama' or an EnsembleBackend (model-combination loop) for 'ensemble', both built
+    from --config; else the backend name string."""
+    b = getattr(args, "backend", None)
+    cfg = getattr(args, "config", None)
+    if b == "gama":
+        return gama_from_config(cfg)
+    if b == "ensemble":
+        return ensemble_from_config(cfg)
+    return args.backend
 
 
 def _render_plan(plan: RunPlan, router: ModelRouter, orch: Orchestrator) -> str:
@@ -74,7 +93,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     backend_kwargs = {}
     if args.backend == "ollama" and args.ollama_host:
         backend_kwargs["host"] = args.ollama_host
-    orch = Orchestrator.default(args.backend, config=args.config, **backend_kwargs)
+    orch = Orchestrator.default(_backend_arg(args), config=args.config, **backend_kwargs)
     plan = orch.plan(args.request, run_id=args.run_id)
     if orch.architect.last_error:
         sys.stderr.write(f"[tehai] LLM fell back to template: {orch.architect.last_error}\n")
@@ -99,7 +118,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     if args.backend == "ollama" and args.ollama_host:
         backend_kwargs["host"] = args.ollama_host
     sandbox_arg = Sandbox(isolation="strict") if args.sandbox_strict else args.sandbox
-    orch = Orchestrator.default(args.backend, sandbox=sandbox_arg, config=args.config, **backend_kwargs)
+    orch = Orchestrator.default(_backend_arg(args), sandbox=sandbox_arg, config=args.config, **backend_kwargs)
     plan = orch.plan(args.request, run_id=args.run_id)
     logger = ExecutionLogger(Path(args.runs_dir) / f"{plan.run_id}.jsonl") if args.save_log else None
     results = orch.execute(plan, limit=args.limit, logger=logger)
@@ -147,7 +166,7 @@ def cmd_review(args: argparse.Namespace) -> int:
     backend_kwargs = {}
     if args.backend == "ollama" and args.ollama_host:
         backend_kwargs["host"] = args.ollama_host
-    orch = Orchestrator.default(args.backend, **backend_kwargs)
+    orch = Orchestrator.default(_backend_arg(args), **backend_kwargs)
     plan = orch.plan(args.request, run_id=args.run_id)
     artifact = Path(args.artifact).read_text(encoding="utf-8") if args.artifact else None
 
@@ -275,6 +294,54 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bench(args: argparse.Namespace) -> int:
+    from .benchmark import propose_routing_table, run_bench
+
+    cfg = load_config(args.config)
+    names = [n.strip() for n in args.backends.split(",") if n.strip()]
+    backends: dict = {}
+    unavailable: list[str] = []
+    for n in names:
+        try:
+            if n == "ensemble":          # the model-combination loop, as one backend
+                be = ensemble_from_config(args.config)
+            elif n == "gama":            # the vendor router, as one backend
+                be = gama_from_config(args.config)
+            else:
+                be = get_backend(n, **cfg["backends"].get(n, {}))
+        except Exception as e:  # unknown name / bad kwargs — skip, don't abort the sweep
+            sys.stderr.write(f"[tehai] skip backend {n!r}: {e}\n")
+            continue
+        backends[n] = be
+        if not getattr(be, "available", False):
+            unavailable.append(n)
+    if not backends:
+        sys.stderr.write("[tehai] no usable backends to benchmark\n")
+        return 2
+    if unavailable:
+        sys.stderr.write(f"[tehai] WARNING: unavailable backends will score 0: {unavailable}\n")
+    sys.stderr.write("[tehai] NOTE: code cases EXECUTE model-generated Python in-process "
+                     "(opt-in, like --sandbox). Only run on trusted backends.\n")
+
+    logger = ExecutionLogger(args.out) if args.out else None
+    records = run_bench(
+        backends, tier=ModelTier(args.tier), repeats=args.repeats,
+        limit_per_class=args.limit_per_class, unit_cost=cfg.get("unit_cost") or None,
+        logger=logger, run_id=args.run_id or "bench",
+    )
+    proposal = propose_routing_table(records)
+    print(json.dumps(proposal, ensure_ascii=False, indent=2))
+    if args.out:
+        sys.stderr.write(f"[tehai] bench ledger -> {args.out}\n")
+    if args.propose:
+        Path(args.propose).write_text(
+            json.dumps({"routing_table": proposal["routing_table"]}, ensure_ascii=False, indent=2),
+            encoding="utf-8")
+        sys.stderr.write(f"[tehai] routing_table proposal -> {args.propose} "
+                         f"(review, merge into a --config file, then run --backend gama)\n")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="tehai", description="手配 — controlled delegation layer")
     p.add_argument("--version", action="version", version=f"tehai {__version__}")
@@ -286,18 +353,18 @@ def build_parser() -> argparse.ArgumentParser:
     pp.add_argument("--save-log", action="store_true", help="write a sample execution log")
     pp.add_argument("--run-id", default=None, help="override the derived run id")
     pp.add_argument("--runs-dir", default="runs", help="directory for sample logs")
-    pp.add_argument("--backend", default="null",
-                    choices=["null", "echo", "claude-cli", "ollama"],
-                    help="model backend for LLM-backed decomposition (default: null = deterministic)")
+    pp.add_argument("--backend", default="null", choices=BACKEND_CHOICES_GAMA,
+                    help="model backend for LLM-backed decomposition (default: null = deterministic). "
+                         "'gama' = config-driven multi-vendor router")
     pp.add_argument("--ollama-host", default=None, help="override Ollama host URL (WSL2: http://172.24.224.1:11434)")
     pp.add_argument("--config", default=None, help="adopt calibration knobs from a JSON config (router thresholds)")
     pp.set_defaults(func=cmd_plan)
 
     prun = sub.add_parser("run", help="plan, then generate artifacts + review + judge each task")
     prun.add_argument("request", help="the user request, in quotes")
-    prun.add_argument("--backend", default="null",
-                      choices=["null", "echo", "claude-cli", "ollama"],
-                      help="model backend for generation+review (default: null = stub+heuristic)")
+    prun.add_argument("--backend", default="null", choices=BACKEND_CHOICES_GAMA,
+                      help="model backend for generation+review (default: null = stub+heuristic). "
+                           "'gama' = config-driven multi-vendor router")
     prun.add_argument("--ollama-host", default=None, help="override Ollama host URL")
     prun.add_argument("--limit", type=int, default=3, help="max tasks to execute (bounds backend calls)")
     prun.add_argument("--sandbox", action="store_true",
@@ -314,18 +381,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     pr = sub.add_parser("review", help="plan a request then run reviews + judge over its tasks")
     pr.add_argument("request", help="the user request, in quotes")
-    pr.add_argument("--backend", default="null",
-                    choices=["null", "echo", "claude-cli", "ollama"],
+    pr.add_argument("--backend", default="null", choices=BACKEND_CHOICES_GAMA,
                     help="model backend for the reviewers (default: null = heuristic)")
     pr.add_argument("--ollama-host", default=None, help="override Ollama host URL")
     pr.add_argument("--artifact", default=None, help="file to review against the first task")
     pr.add_argument("--limit", type=int, default=3, help="max tasks to review (bounds LLM calls)")
     pr.add_argument("--run-id", default=None, help="override the derived run id")
+    pr.add_argument("--config", default=None, help="config (router thresholds + multi routing_table)")
     pr.set_defaults(func=cmd_review)
 
     pm = sub.add_parser("meta", help="run the Multi-Team AgentOps loop on a product goal")
     pm.add_argument("goal", help="the product goal, in quotes")
-    pm.add_argument("--backend", default="null", choices=["null", "echo", "claude-cli", "ollama"],
+    pm.add_argument("--backend", default="null", choices=BACKEND_CHOICES,
                     help="model backend for the underlying tehai pipeline")
     pm.add_argument("--sandbox", action="store_true", help="run generated code in the sandbox")
     pm.add_argument("--autonomy", default="supervised",
@@ -356,6 +423,23 @@ def build_parser() -> argparse.ArgumentParser:
     pcal.add_argument("--out", default=None, help="write the full proposal JSON for human review")
     pcal.add_argument("--apply", default=None, help="write an adoptable config (router thresholds) to a file; use via --config")
     pcal.set_defaults(func=cmd_calibrate)
+
+    pb = sub.add_parser("bench",
+                        help="benchmark backends per task-class (deterministic) and propose a routing_table")
+    pb.add_argument("--backends", default="echo",
+                    help="comma-separated backend names, e.g. claude-tui,codex,ollama. "
+                         "Use 'echo' for a free deterministic smoke test.")
+    pb.add_argument("--tier", default="large", choices=["small", "medium", "large"],
+                    help="model tier each backend uses for the bench (default: large)")
+    pb.add_argument("--repeats", type=int, default=1, help="repeats per case")
+    pb.add_argument("--limit-per-class", type=int, default=None,
+                    help="cap cases per task-class (keep small to respect rate limits)")
+    pb.add_argument("--out", default=None, help="write a LogRecord JSONL bench ledger")
+    pb.add_argument("--propose", default=None, help="write the proposed routing_table JSON for review")
+    pb.add_argument("--run-id", default=None, help="override the bench run id")
+    pb.add_argument("--config", default=None,
+                    help="config providing per-backend kwargs (host/model_by_tier) + unit_cost")
+    pb.set_defaults(func=cmd_bench)
     return p
 
 

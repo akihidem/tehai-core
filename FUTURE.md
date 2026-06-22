@@ -128,3 +128,37 @@ Remaining hook points to add as CI stages (each already has a natural home):
   deliberate human step.
 - **Still open**: genuine (non-injected) ambiguity detection by the Verification
   Team needs a live judge; deterministic runs inject failures for reproducibility.
+
+## I. Vendor routing & backend bench — gama (蝦蟇) ✅ DONE (deterministic Conductor)
+- **Backends ✅**: `claude-tui` (flat-subscription Claude Code TUI via `claude-cli-run.py`,
+  not the metered `--print`), `codex` (`codex exec`), `gemini` (OpenAI-compatible,
+  key-gated), remote-capable `ollama`. All stdlib, inert until used.
+- **GamaBackend (Conductor) ✅**: deterministic table lookup on `task_type` (threaded
+  through the seam), fallback to `default_backend`; built via `config.gama_from_config`,
+  adopted with `--config` + `--backend gama`.
+- **Bench as external anchor ✅**: `tehai bench` scores backends per task-class with
+  deterministic checkers and proposes a `routing_table` (proposal only, human-ratified —
+  same discipline as `calibrate`). Proven live on local `ollama` (gemma4, 5/5 classes).
+- **EnsembleBackend (model-combination loop) ✅**: combines N sub-backends on the SAME
+  task (`synthesize` / `majority` / `first`) — the mixture-of-agents counterpart to
+  gama's routing. `--backend ensemble`, `ensemble_from_config`,
+  `examples/ensemble.example.json`. Homogeneous self-ensemble (one model × temperature)
+  or heterogeneous mix. Finding (adversarially verified, fair measurement): (1) identical copies are
+  useless — 7B×5 == 7B×1 (easy 0.8, hard 0.5); (2) a HETEROGENEOUS light mix (7B+24B+32B)
+  genuinely beats a single 7B (hard 0.5→0.83) by covering different blind spots; (3) but
+  it does NOT reach the strong 122B (hard 1.0): a class where ALL small members fail
+  identically (big mental arithmetic) can't be recovered by aggregation — the big
+  model/tool is irreducible there. NB: an earlier run that *appeared* to show the ensemble
+  beating the 122B was a measurement bug (reasoning-model code not extracted; tokens
+  truncated) — the `_extract_code` fix + per-architecture max_tokens flipped the 122B's
+  hard score 0.5→1.0. Cross-architecture comparison needs fair extraction + token budget.
+- **Sovereign remote floor ✅ (proven on a Mac Studio MLX)**: `ssh-openai` calls an
+  OpenAI-compatible server (MLX `mlx_lm.server`, LM Studio, vLLM) over
+  `ssh <host> curl localhost:<port>/v1/…` (prompt on stdin, no open port; 0.5–2 s/call).
+  The `ollama` lane also has a `transport:"ssh"` (`ollama run`) for ollama hosts.
+  `examples/gama_config.macstudio.example.json`.
+- **Deferred — LLM Conductor**: a per-call LLM router (e.g. Claude decides each subtask's
+  vendor) is intentionally NOT built — it trades transparency + cost for flexibility and
+  reintroduces self-report dependence. Keep it behind an experiment flag if pursued.
+- **Next**: real per-vendor `unit_cost` so the proposal optimizes score-per-dollar (not
+  just score-then-latency); per-instance (not per-class) routing.

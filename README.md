@@ -214,6 +214,64 @@ defaulting from its tier: large→high, medium→medium, small→low). So a Secu
 reasons at ≥high effort, an AutoChecker at low. The CLI prints `… / effort=high`;
 backends carry it via the seam (mapped to the API thinking budget where supported).
 
+## 6.5 Vendor routing & the backend bench (gama)
+
+§6 picks a *tier* (which size). A separate, optional layer — **gama** (蝦蟇) — picks the
+*vendor*: which backend serves each task **class**. So you can run a pool of frontier +
+local models, sending each task class to whichever vendor measures best, while keeping a
+local sovereignty lane.
+
+**Backends** (`backends.py`, all stdlib, inert until used): `claude-tui` (drives the
+Claude Code TUI via `claude-cli-run.py` — the flat-subscription lane, *not* the metered
+`claude --print`/Agent-SDK lane), `codex` (`codex exec`), `gemini` (OpenAI-compatible
+endpoint, key-gated — wire in later), `ollama` (local HTTP, or remote `ollama run` over
+SSH via `transport:"ssh"`), `ssh-openai` (call an OpenAI-compatible server — **MLX
+`mlx_lm.server`**, LM Studio, vLLM — on a remote box over SSH, e.g. a Mac Studio strong
+floor), plus the existing `claude-cli` / `echo` / `null`.
+
+**`GamaBackend` is the deterministic Conductor**: it reads the per-call `task_type`
+(threaded through the seam by the executor) and dispatches to the backend named in a
+`routing_table`, falling back to `default_backend`. No LLM sits in the routing path; the
+table is *measured*, not guessed.
+
+**`EnsembleBackend` combines instead of routes.** Where gama sends a task to one vendor,
+`--backend ensemble` runs **N models on the SAME task and aggregates** — the model-
+combination loop, living on the seam so `tehai run`/`bench` drive it like any backend.
+Strategies: `synthesize` (an aggregator writes the final from all candidates), `majority`,
+`first`. Repeat one model with `temperature` for a homogeneous self-ensemble, or list
+different models for a heterogeneous mixture-of-agents. Compare it against a single model
+through tehai: `tehai bench --backends ensemble,ssh-openai --config cfg.json`. See
+`examples/ensemble.example.json`.
+
+**The bench is the external anchor.** `tehai bench` runs a small suite of task-class
+cases with **deterministic checkers** (executed code, exact numbers, required-element
+presence — never an LLM judge) across the chosen backends, then proposes a
+`routing_table` (highest score per class; ties broken by latency, then cost). Adopt it
+like a calibration — review, merge into a `--config`, run `--backend gama`:
+
+```
+# Free deterministic smoke (plumbing only):
+tehai bench --backends echo
+
+# Measure real vendors, propose a table (keep the suite small — rate limits):
+tehai bench --backends claude-tui,codex,ollama --tier large \
+            --limit-per-class 2 --out runs/bench.jsonl --propose runs/routing_table.json
+
+# After human review, merge routing_table into cfg.json, then run the gama router:
+tehai run "build X" --backend gama --config cfg.json
+```
+
+For a sovereign **strong floor on a remote box** (no open port, prompt on stdin):
+`ssh-openai` calls an OpenAI-compatible server (**MLX `mlx_lm.server`**, LM Studio, vLLM)
+via `ssh <host> curl localhost:<port>/v1/…` — proven on a Mac Studio MLX (0.5–2 s/call).
+For ollama hosts, the `ollama` lane's `transport:"ssh"` runs `ollama run`. See
+`examples/gama_config.macstudio.example.json`.
+
+Honesty: the *writing* class is a coarse proxy (shape, not quality); the *code* class
+**executes model output** (opt-in, like `--sandbox`). Orchestration wins by routing the
+right specialist per class + cost — it does **not** exceed the best single model on that
+model's own best task.
+
 ## 7. Permission model
 
 Least privilege: an action not explicitly granted is **denied**. Dangerous /

@@ -78,6 +78,28 @@ class TestBackendsBasic(unittest.TestCase):
         self.assertEqual(be.host, "http://example:1234")
         self.assertIsInstance(be, OllamaBackend)
 
+    def test_ollama_ssh_transport(self):
+        # Mac Studio "strong floor" reached over SSH (no open HTTP port).
+        be = get_backend("ollama", transport="ssh", ssh_host="mac-studio",
+                         model_by_tier={ModelTier.LARGE: "qwen2.5:72b"})
+        self.assertEqual(be.transport, "ssh")
+        self.assertEqual(be.ssh_host, "mac-studio")
+        cmd = be._ssh_cmd("qwen2.5:72b")
+        self.assertEqual(cmd[0], "ssh")
+        self.assertIn("mac-studio", cmd)
+        self.assertEqual(cmd[-3:], ["ollama", "run", "qwen2.5:72b"])
+
+    def test_ssh_openai_cmd(self):
+        # OpenAI-compatible server (e.g. Mac Studio MLX) called over SSH + curl.
+        be = get_backend("ssh-openai", ssh_host="user@host", port=8080,
+                         model_by_tier={ModelTier.LARGE: "some/model"})
+        self.assertEqual(be.name, "ssh-openai")
+        cmd = be._ssh_cmd()
+        self.assertEqual(cmd[0], "ssh")
+        self.assertIn("user@host", cmd)
+        self.assertIn("curl", cmd[-1])
+        self.assertIn("localhost:8080/v1/chat/completions", cmd[-1])
+
 
 class TestLLMDecompose(unittest.TestCase):
     def setUp(self):

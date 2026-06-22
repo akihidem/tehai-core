@@ -148,8 +148,11 @@ class Executor:
         if self._backend_available():
             try:
                 self.backend.last_usage = None  # so a fallback leaves no stale usage
+                # task_type lets the gama router (GamaBackend) send this call to the
+                # per-class winning vendor; single backends ignore the extra kwarg.
                 raw = self.backend.complete(self._gen_prompt(agent, contract, upstream), tier,
-                                            effort=contract.recommended_effort.value)
+                                            effort=contract.recommended_effort.value,
+                                            task_type=contract.task_type.value)
                 data = _extract_json(raw)
                 if isinstance(data, dict) and data:
                     arts = {str(k): str(v) for k, v in data.items() if str(v).strip()}
