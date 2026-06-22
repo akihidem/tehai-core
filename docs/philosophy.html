@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>手配 / tehai — 規律ある委譲</title>
+<!-- Self-describing layout metadata (so this can also be sent to Adobe Express) -->
+<meta name="hz:slide-selector" content=".infographic" />
+<meta name="hz:canvas-width" content="1080" />
+<meta name="hz:canvas-height" content="2000" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #2a2f3a;
+    padding: 28px;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  }
+
+  .infographic {
+    position: relative;
+    width: 1080px;
+    min-height: 2000px;   /* grows to fit content so the footer never clips */
+    background: #f5f1e8;
+    color: #1b2330;
+    overflow: hidden;
+    padding: 64px 72px 56px;
+  }
+  /* thin accent rule down the left margin — "the boundary" motif */
+  .infographic::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 10px;
+    background: linear-gradient(#2c6e6b 0%, #2c6e6b 62%, #c2762c 62%, #c2762c 100%);
+  }
+
+  .mono { font-family: "SF Mono", "DejaVu Sans Mono", "Roboto Mono", monospace; }
+
+  /* ---------- header ---------- */
+  .brand { font-size: 17px; letter-spacing: .32em; color: #2c6e6b; font-weight: 700; }
+  .brand .en { color: #8a8576; letter-spacing: .18em; }
+  h1 {
+    font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+    font-size: 78px; line-height: 1.04; font-weight: 700; margin: 14px 0 4px;
+    letter-spacing: .02em;
+  }
+  h1 .sub-en { display:block; font-family:"Georgia", serif; font-size: 23px; font-style: italic;
+               color:#5b6675; letter-spacing:.04em; font-weight:400; margin-top: 12px; }
+  .lede { font-size: 21px; line-height: 1.7; color: #3b4655; max-width: 880px; margin-top: 20px; }
+  .lede strong { color:#1b2330; border-bottom: 2px solid #c2762c; padding-bottom: 1px; font-weight: 700; }
+  .lede .muted { color:#7a8493; font-size: 18px; }
+
+  /* ---------- section titles ---------- */
+  .sec {
+    font-size: 14px; letter-spacing:.30em; color:#2c6e6b; font-weight:700;
+    margin: 0 0 18px; display:flex; align-items:center; gap:14px; text-transform: uppercase;
+  }
+  .sec::after { content:""; flex:1; height:1px; background:#cfc8b6; }
+
+  .flow { margin-top: 40px; }
+  .principles { margin-top: 36px; }
+
+  svg { display:block; }
+
+  /* ---------- team chips ---------- */
+  .teams { display:flex; flex-wrap:wrap; gap:9px; margin: 16px 0 4px; }
+  .chip {
+    font-size: 15px; padding: 7px 15px; border-radius: 999px;
+    background:#e7e0cf; color:#39414f; border:1px solid #d4ccb6; font-weight:600;
+  }
+  .chip.sec-team { background:#f3e4d2; border-color:#e3c49d; color:#9a5b1c; }
+
+  /* ---------- principles grid ---------- */
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px 22px; }
+  .card {
+    background:#fbf9f3; border:1px solid #e4ddcb; border-left:4px solid #2c6e6b;
+    border-radius:8px; padding:20px 22px 19px; position:relative;
+  }
+  .card.gate { border-left-color:#c2762c; }
+  .card .num { font-size:13px; color:#a89f88; font-weight:700; letter-spacing:.12em; }
+  .card h3 { font-size:22px; line-height:1.3; margin:7px 0 9px; color:#16202c; letter-spacing:.01em; }
+  .card p  { font-size:16.5px; line-height:1.62; color:#4a5563; }
+  .card p b { color:#205c59; font-weight:700; }
+  .card.gate p b { color:#9a5b1c; }
+
+  /* ---------- footer ---------- */
+  footer { margin-top: 44px; }
+  .rule { height:1px; background:#cfc8b6; margin-bottom: 22px; }
+  .kicker {
+    font-family:"Yu Mincho","Hiragino Mincho ProN", serif;
+    font-size:34px; font-weight:700; color:#16202c; letter-spacing:.03em;
+  }
+  .fsub { font-size:17px; color:#5b6675; margin-top:10px; line-height:1.6; }
+  .meta-row { display:flex; justify-content:space-between; align-items:baseline; margin-top:18px;
+              font-size:13px; color:#8a8576; letter-spacing:.1em; }
+</style>
+</head>
+<body>
+<div class="infographic" data-canvas-width="1080" data-canvas-height="2000">
+
+  <header>
+    <div class="brand">手配 <span class="en">/ TEHAI</span></div>
+    <h1>規律ある委譲<span class="sub-en">disciplined delegation, not autonomous swarm</span></h1>
+    <p class="lede">
+      AIに<strong>全部やらせない</strong>。人間の開発組織の構造で <strong>分解・配分</strong>し、
+      テンプレ・予算・深度・権限・停止条件という <strong>境界</strong>で守る。<br>
+      <span class="muted">— 暴走する自己改善AIではなく、監査可能な AgentOps 基盤。</span>
+    </p>
+  </header>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="flow">
+    <h2 class="sec">Architecture · 委譲の流れ</h2>
+
+    <svg width="936" height="486" viewBox="0 0 936 486" role="img"
+         aria-label="製品目標からMeta Orchestrator、AIチーム、内部パイプライン、Judge、評価までの流れと、失敗の差し戻しループ・承認ゲート">
+      <defs>
+        <marker id="arr" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto">
+          <path d="M1,1 L9,5.5 L1,10 Z" fill="#5b6675"/>
+        </marker>
+        <marker id="arrTeal" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto">
+          <path d="M1,1 L9,5.5 L1,10 Z" fill="#2c6e6b"/>
+        </marker>
+        <marker id="arrAmber" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto">
+          <path d="M1,1 L9,5.5 L1,10 Z" fill="#c2762c"/>
+        </marker>
+      </defs>
+
+      <!-- vertical spine boxes (x 168..648, width 480, centered at 408) -->
+      <!-- stage 1 -->
+      <rect x="168" y="6"   width="480" height="52" rx="9" fill="#1f2a38"/>
+      <text x="408" y="38" text-anchor="middle" fill="#f5f1e8" font-size="19" font-weight="700"
+            font-family="sans-serif">製品目標 / Product Goal</text>
+
+      <!-- stage 2 -->
+      <rect x="168" y="92"  width="480" height="60" rx="9" fill="#2c6e6b"/>
+      <text x="408" y="119" text-anchor="middle" fill="#f5f1e8" font-size="19" font-weight="700" font-family="sans-serif">Meta Orchestrator</text>
+      <text x="408" y="140" text-anchor="middle" fill="#cfe6e3" font-size="14" font-family="sans-serif">必要チームを選択し Team Contract で配分</text>
+
+      <!-- stage 3 -->
+      <rect x="168" y="186" width="480" height="60" rx="9" fill="#fbf9f3" stroke="#2c6e6b" stroke-width="1.5"/>
+      <text x="408" y="213" text-anchor="middle" fill="#16202c" font-size="18" font-weight="700" font-family="sans-serif">AI チーム ×7（登録制・捏造しない）</text>
+      <text x="408" y="234" text-anchor="middle" fill="#5b6675" font-size="13.5" font-family="sans-serif">企画 · 設計 · 実装 · 検証 · セキュリティ · 統合 · 文書</text>
+
+      <!-- stage 4 -->
+      <rect x="168" y="280" width="480" height="66" rx="9" fill="#fbf9f3" stroke="#d4ccb6" stroke-width="1.5"/>
+      <text x="408" y="306" text-anchor="middle" fill="#16202c" font-size="17" font-weight="700" font-family="sans-serif">各チーム内パイプライン</text>
+      <text x="408" y="328" text-anchor="middle" fill="#39414f" font-size="13.5" font-family="monospace">分解 → モデル/effort → リスク別レビュー → 実行/sandbox</text>
+
+      <!-- stage 5 -->
+      <rect x="168" y="380" width="480" height="52" rx="9" fill="#1f2a38"/>
+      <text x="408" y="412" text-anchor="middle" fill="#f5f1e8" font-size="19" font-weight="700" font-family="sans-serif">Judge — 採用 / 修正 / 破棄 / 再実行</text>
+
+      <!-- stage 6 -->
+      <rect x="234" y="456" width="348" height="26" rx="6" fill="none"/>
+      <text x="408" y="474" text-anchor="middle" fill="#2c6e6b" font-size="14.5" font-weight="700" font-family="sans-serif">→ 完了 ＋ 評価（改善は提案のみ）</text>
+
+      <!-- spine arrows (center x=408) -->
+      <line x1="408" y1="58"  x2="408" y2="90"  stroke="#5b6675" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="408" y1="152" x2="408" y2="184" stroke="#2c6e6b" stroke-width="2" marker-end="url(#arrTeal)"/>
+      <line x1="408" y1="246" x2="408" y2="278" stroke="#5b6675" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="408" y1="346" x2="408" y2="378" stroke="#5b6675" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="408" y1="432" x2="408" y2="454" stroke="#2c6e6b" stroke-width="2" marker-end="url(#arrTeal)"/>
+
+      <!-- FAILURE ROUTING loop (right side): from Judge back up to Teams -->
+      <path d="M648,406 H760 Q784,406 784,382 V218 Q784,194 760,194 H648"
+            fill="none" stroke="#c2762c" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrAmber)"/>
+      <text x="800" y="300" fill="#9a5b1c" font-size="14" font-weight="700" font-family="sans-serif">失敗</text>
+      <text x="800" y="320" fill="#9a5b1c" font-size="12.5" font-family="sans-serif">→ 原因チームへ</text>
+      <text x="800" y="337" fill="#9a5b1c" font-size="12.5" font-family="sans-serif">差し戻し</text>
+      <text x="800" y="357" fill="#b0a890" font-size="11.5" font-family="sans-serif">(盲目リトライしない)</text>
+
+      <!-- approval gate (left side) -->
+      <path d="M168,406 H56 Q34,406 34,382 V100 Q34,78 56,78 H166"
+            fill="none" stroke="#5b6675" stroke-width="1.6" stroke-dasharray="3 4"/>
+      <rect x="6" y="225" width="58" height="56" rx="7" fill="#f3e4d2" stroke="#c2762c" stroke-width="1.4"/>
+      <text x="35" y="248" text-anchor="middle" fill="#9a5b1c" font-size="12" font-weight="700" font-family="sans-serif">承認</text>
+      <text x="35" y="264" text-anchor="middle" fill="#9a5b1c" font-size="12" font-weight="700" font-family="sans-serif">ゲート</text>
+      <text x="35" y="296" text-anchor="middle" fill="#9a5b1c" font-size="10.5" font-family="sans-serif">高リスク</text>
+    </svg>
+
+    <div class="teams">
+      <span class="chip">Product Planning</span>
+      <span class="chip">Architecture</span>
+      <span class="chip">Implementation</span>
+      <span class="chip">Verification</span>
+      <span class="chip sec-team">Security ⛨</span>
+      <span class="chip">Integration</span>
+      <span class="chip">Documentation</span>
+    </div>
+  </section>
+
+  <!-- ============ PRINCIPLES ============ -->
+  <section class="principles">
+    <h2 class="sec">設計の “メタな考え” · 7原則</h2>
+    <div class="grid">
+      <div class="card">
+        <span class="num">01</span>
+        <h3>分解は進捗ではない</h3>
+        <p>タスクを割ると仕事をした気になる。だが <b>成果物に近づく分解</b>だけ許可する。割った数は成果じゃない。</p>
+      </div>
+      <div class="card">
+        <span class="num">02</span>
+        <h3>tier ≠ effort</h3>
+        <p>「どのモデルを使うか」と「<b>どれだけ考えさせるか</b>」は別軸。両方をリスクで決める（複雑さだけで決めない）。</p>
+      </div>
+      <div class="card">
+        <span class="num">03</span>
+        <h3>失敗は原因で差し戻す</h3>
+        <p>同じチームに盲目リトライしない。曖昧→企画、設計矛盾→設計、<b>統合衝突→統合</b>へ。これが単一AIとの構造的な差。</p>
+      </div>
+      <div class="card">
+        <span class="num">04</span>
+        <h3>外部錨 ＞ 自己申告</h3>
+        <p>「いいコードです」を信じない。<b>実際にコンパイルして・走らせて・異種の目で見る</b>。確信的な誤りほど静かに通るから。</p>
+      </div>
+      <div class="card">
+        <span class="num">05</span>
+        <h3>床を上げる、天井ではなく</h3>
+        <p>批評ループを足しても生成の天井は上がらない（診断≠実行能力）。<b>ダメを確実に弾く</b>方に振り切り、それを正直に書く。</p>
+      </div>
+      <div class="card gate">
+        <span class="num">06</span>
+        <h3>段階的自律 ＋ 承認ゲート</h3>
+        <p>低リスクは人間なしで回復。<b>本番・外部送信・秘密・削除</b>は必ず人間ゲート。人間は消さず高リスク境界に温存する。</p>
+      </div>
+      <div class="card gate">
+        <span class="num">07</span>
+        <h3>自己改善は提案まで</h3>
+        <p>記録 → 提案 → <b>人間が採用</b>。暴走を防ぐシステムが、自分のルーティングを勝手に書き換えたら本末転倒。</p>
+      </div>
+      <div class="card" style="border-left-color:#1f2a38; background:#eef4f3;">
+        <span class="num">META</span>
+        <h3>能力でなく、境界をスケールする</h3>
+        <p>「モデルを大きくする」流れへの反転。モデルの<b>周りの“組織と境界”</b>をスケールし、安全を構造で担保する。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="rule"></div>
+    <p class="kicker">価値は能力でなく、境界に宿る。</p>
+    <p class="fsub">大事なのは「成功すること」より —— 正しく止まり、正しく差し戻し、<b>なぜそうしたか監査できる</b>こと。</p>
+    <div class="meta-row">
+      <span class="mono">手配 / tehai — Multi-Team AgentOps</span>
+      <span class="mono">controlled delegation · auditable · bounded</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

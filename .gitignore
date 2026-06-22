@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+# Local execution logs (sample logs under runs/ are tracked via runs/.gitkeep only).
+runs/*.jsonl
+.DS_Store
+
+# Local agent/session context (never publish)
+.claude/

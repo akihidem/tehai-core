@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tehai.local/schemas/agent_template.schema.json",
+  "title": "AgentTemplate",
+  "description": "A registry entry. Center of gravity is responsibilities/permissions/output, not persona.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_template_id", "role", "mission", "recommended_model_tier"],
+  "properties": {
+    "agent_template_id": { "type": "string", "minLength": 1 },
+    "role": { "type": "string", "minLength": 1 },
+    "mission": { "type": "string", "minLength": 1 },
+    "responsibilities": { "type": "array", "items": { "type": "string" } },
+    "allowed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "read_file", "read_repository", "search", "run_static_analysis", "web_fetch",
+          "write_file", "write_review_report", "run_test",
+          "file_delete", "git_push", "production_deploy", "external_api", "send_email",
+          "send_slack", "db_update", "secret_read", "secret_export",
+          "permission_change", "direct_code_merge"
+        ]
+      }
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "required_context": { "type": "array", "items": { "type": "string" } },
+    "output_schema": { "type": "string" },
+    "quality_bar": { "type": "array", "items": { "type": "string" } },
+    "escalation_rules": { "type": "array", "items": { "type": "string" } },
+    "recommended_model_tier": { "type": "string", "enum": ["small", "medium", "large"] },
+    "recommended_effort": { "type": "string", "enum": ["low", "medium", "high", "xhigh", "max"] },
+    "handles_task_types": { "type": "array", "items": { "type": "string" } }
+  }
+}

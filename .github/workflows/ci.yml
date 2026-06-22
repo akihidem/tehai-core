@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+# Spec §12: AI-generated artifacts never ship unreviewed. This pipeline is the
+# automated gate — tests + a CLI smoke. (Review / Judge / human-approval gates
+# live inside the tool: `tehai run` exits non-zero on a failed task.)
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Tests (stdlib only, zero deps)
+        run: python -m unittest discover -s tests -t .
+
+      - name: CLI smoke — plan
+        run: python -m tehai plan "implement login input validation"
+
+      - name: CLI smoke — run (deterministic stubs, offline)
+        run: python -m tehai run "add a pagination helper" --limit 2
+
+      - name: CLI smoke — evaluate + calibrate
+        run: |
+          python -m tehai run "add a helper" --save-log --run-id R-ci
+          python -m tehai evaluate runs/R-ci.jsonl
+          python -m tehai calibrate runs/R-ci.jsonl

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>手配 / tehai — 使い方マニュアル</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --paper:#faf8f3; --ink:#1d2733; --muted:#5b6675; --line:#e3ddcd;
+    --teal:#2c6e6b; --teal-d:#205c59; --amber:#c2762c; --amber-d:#9a5b1c;
+    --code-bg:#1f2a38; --code-fg:#e8edf2; --code-dim:#9fb0c0;
+  }
+  body{
+    background:#2a2f3a; color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    line-height:1.75; font-size:16px; padding:36px 16px;
+  }
+  .wrap{ max-width:880px; margin:0 auto; background:var(--paper); border-radius:14px;
+         box-shadow:0 18px 60px rgba(0,0,0,.35); overflow:hidden; }
+  .mono{ font-family:"SF Mono","DejaVu Sans Mono","Roboto Mono",monospace; }
+
+  header{ padding:42px 52px 34px; border-bottom:1px solid var(--line);
+          background:linear-gradient(180deg,#fbf9f4,#f4efe4); position:relative; }
+  header::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:8px;
+                  background:linear-gradient(var(--teal) 0 64%, var(--amber) 64% 100%); }
+  .brand{ font-size:14px; letter-spacing:.3em; color:var(--teal); font-weight:700; }
+  .brand .en{ color:#9a957f; letter-spacing:.16em; }
+  h1{ font-size:40px; line-height:1.15; margin:10px 0 6px; letter-spacing:.01em;
+      font-family:"Yu Mincho","Hiragino Mincho ProN",serif; }
+  .tagline{ color:var(--muted); font-size:16px; }
+
+  nav{ padding:18px 52px; background:#f1ece0; border-bottom:1px solid var(--line);
+       font-size:14px; display:flex; flex-wrap:wrap; gap:6px 18px; }
+  nav a{ color:var(--teal-d); text-decoration:none; font-weight:600; }
+  nav a:hover{ text-decoration:underline; }
+
+  main{ padding:14px 52px 48px; }
+  section{ padding:26px 0 8px; border-bottom:1px solid var(--line); }
+  section:last-child{ border-bottom:none; }
+  h2{ font-size:24px; margin:6px 0 14px; color:var(--ink); display:flex; align-items:center; gap:12px; }
+  h2 .n{ font-size:13px; color:#fff; background:var(--teal); width:30px; height:30px;
+         border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; }
+  h3{ font-size:18px; margin:20px 0 8px; color:var(--teal-d); }
+  p{ margin:10px 0; }
+  ul{ margin:10px 0 10px 22px; } li{ margin:5px 0; }
+  code{ font-family:"SF Mono","Roboto Mono",monospace; background:#ece6d8; color:#37414f;
+        padding:2px 6px; border-radius:5px; font-size:14px; }
+  .kbd{ color:var(--amber-d); font-weight:700; }
+
+  pre{ background:var(--code-bg); color:var(--code-fg); border-radius:10px;
+       padding:16px 18px; overflow-x:auto; margin:12px 0; font-size:13.5px; line-height:1.65; }
+  pre .mono{ font-family:"SF Mono","Roboto Mono",monospace; }
+  pre .c{ color:#7e93a6; }    /* comment */
+  pre .o{ color:#7fd1c2; }    /* command / option */
+  pre .s{ color:#e6c07b; }    /* string */
+
+  table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:14.5px; }
+  th,td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ color:var(--teal-d); font-size:13px; letter-spacing:.04em; }
+  td code{ white-space:nowrap; }
+
+  .call{ border-radius:10px; padding:14px 18px; margin:16px 0; font-size:14.5px; line-height:1.65; }
+  .tip{ background:#e8f1ef; border-left:4px solid var(--teal); }
+  .warn{ background:#f7eadb; border-left:4px solid var(--amber); }
+  .call b{ color:var(--ink); }
+
+  footer{ padding:24px 52px 30px; background:#f1ece0; border-top:1px solid var(--line);
+          color:var(--muted); font-size:13.5px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:620px){
+    header,nav,main,footer{ padding-left:24px; padding-right:24px; }
+    h1{ font-size:32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">手配 <span class="en">/ TEHAI</span> — 使い方マニュアル</div>
+    <h1>tehai を使う</h1>
+    <p class="tagline">要求を「契約付きの小タスクDAG」に分解し、適切なモデル・effort・チームに配って、検証・差し戻し・監査する委譲基盤。Python 標準ライブラリのみ・依存ゼロ。</p>
+  </header>
+
+  <nav>
+    <a href="#start">① はじめに</a>
+    <a href="#quick">② 5分で試す</a>
+    <a href="#cmd">③ コマンド一覧</a>
+    <a href="#backend">④ backend と sandbox</a>
+    <a href="#meta">⑤ Multi-Team</a>
+    <a href="#lib">⑥ ライブラリ</a>
+    <a href="#improve">⑦ 自己改善</a>
+    <a href="#verify">⑧ 検証・テスト</a>
+    <a href="#safe">⑨ 安全の約束</a>
+  </nav>
+
+  <main>
+
+    <section id="start">
+      <h2><span class="n">1</span> はじめに</h2>
+      <p>tehai は「大きいモデルに全部やらせない」基盤です。ユーザー要求を <b>Task Contract</b> 付きの小タスクに分解し、登録制のエージェント／チームに配り、リスクに応じてモデル階層・reasoning effort・レビュー構成を選び、Judge が採否を決め、失敗は原因チームへ差し戻します。</p>
+      <h3>準備</h3>
+      <ul>
+        <li><b>Python 3.10 以上</b>（このマシンでは <code>python3</code>。<code>python</code> ではない）</li>
+        <li><b>インストール不要</b>：標準ライブラリのみ・追加依存ゼロ</li>
+        <li>リポジトリへ移動してから実行：</li>
+      </ul>
+<pre><span class="mono"><span class="o">cd</span> ~/Projects/tehai</span></pre>
+      <div class="call tip">既定は<b>完全オフラインの決定的モード</b>（実モデル呼び出し無し）。本物の生成・レビューをしたい時だけ <code>--backend</code> を付けます（④参照）。</div>
+    </section>
+
+    <section id="quick">
+      <h2><span class="n">2</span> 5分で試す</h2>
+<pre><span class="mono"><span class="c"># ① 要求を「契約付きタスクDAG」に分解（オフライン・即時）</span>
+python3 -m tehai <span class="o">plan</span> <span class="s">"ログイン画面の入力バリデーションを実装する"</span>
+
+<span class="c"># ② 生成→レビュー→Judge を実行（オフラインはスタブ生成）</span>
+python3 -m tehai <span class="o">run</span> <span class="s">"add a pagination helper"</span> <span class="o">--out</span> ./out
+
+<span class="c"># ③ マルチチームで丸ごと（企画→設計→実装→検証→統合→文書）</span>
+python3 -m tehai <span class="o">meta</span> <span class="s">"Todoアプリにタスク完了フラグ機能を実装する"</span>
+
+<span class="c"># ④ 登録されているチーム／エージェント／組織テンプレを見る</span>
+python3 -m tehai <span class="o">teams</span>
+python3 -m tehai <span class="o">agents</span></span></pre>
+      <p>これだけでも「どう分解され・誰に割り当てられ・どのモデル/effort で・どうレビューされるか」が全部表示されます。</p>
+    </section>
+
+    <section id="cmd">
+      <h2><span class="n">3</span> コマンド一覧</h2>
+      <table>
+        <tr><th>コマンド</th><th>何をする</th></tr>
+        <tr><td><code>tehai plan "&lt;要求&gt;"</code></td><td>要求を Task Contract 付きの DAG に分解。担当エージェント・モデル階層・<b>effort</b>・レビュー計画を表示。<code>--json</code> で機械可読出力。</td></tr>
+        <tr><td><code>tehai run "&lt;要求&gt;"</code></td><td>計画した各タスクの成果物を<b>生成 → 成果物をレビュー → Judge → FSM</b>（accept/revise-retry/discard/human-gate）。<code>--out DIR</code> で成果物保存。</td></tr>
+        <tr><td><code>tehai review "&lt;要求&gt;"</code></td><td>リスク別レビュー計画を実行し Judge が採否（accept/revise/discard/rerun）。<code>--artifact FILE</code> で実物を渡せる。</td></tr>
+        <tr><td><code>tehai meta "&lt;目標&gt;"</code></td><td><b>Multi-Team</b>。Meta Orchestrator が必要チームを選び、Team Contract で配分・統合・差し戻し（⑤）。</td></tr>
+        <tr><td><code>tehai teams / agents / orgs</code></td><td>登録済みのチーム／エージェントテンプレ／組織テンプレを一覧。</td></tr>
+        <tr><td><code>tehai evaluate &lt;ledger.jsonl&gt;</code></td><td>実行ログから成功率・コスト等の指標と<b>改善提案</b>を集計（提案のみ）。</td></tr>
+        <tr><td><code>tehai calibrate &lt;ledger.jsonl&gt;</code></td><td>ログから具体的な設定案（ルーター閾値など）を提案。<code>--apply cfg.json</code> で採用可能 config を書き出し（⑦）。</td></tr>
+        <tr><td><code>tehai verify</code></td><td>Multi-Team の検証シナリオ（意図的失敗含む）を実行し <code>verification_report.md</code> を生成。</td></tr>
+      </table>
+      <div class="call tip"><b>終了コード</b>でCIゲートできます：<code>run</code> は失敗タスクで、<code>review</code> は revise/discard/rerun で、<code>plan</code> はブロック時に非ゼロ終了。</div>
+    </section>
+
+    <section id="backend">
+      <h2><span class="n">4</span> backend と sandbox</h2>
+      <p>既定は決定的（オフライン）。実モデルを使うには <code>--backend</code> を指定します。</p>
+      <table>
+        <tr><th>フラグ</th><th>意味</th></tr>
+        <tr><td><code>--backend null</code></td><td>既定。実モデル無し・ヒューリスティック・即時。</td></tr>
+        <tr><td><code>--backend ollama</code></td><td>ローカル Ollama（このマシンは <code>localhost:11434</code> / gemma4）。<code>--ollama-host URL</code> で上書き可。</td></tr>
+        <tr><td><code>--backend claude-cli</code></td><td>claude CLI 経由（haiku/sonnet/opus を tier で）。</td></tr>
+        <tr><td><code>--sandbox</code></td><td><b>生成コードを実際にコンパイル/実行</b>して検証（py_compile・unittest・node --check 等）。OS名前空間で<b>ネットワーク遮断・/home,/root を tmpfs で隠す</b>。</td></tr>
+        <tr><td><code>--sandbox-strict</code></td><td>隔離が使えない環境では<b>実行を拒否</b>（無防備実行を防ぐ）。</td></tr>
+      </table>
+<pre><span class="mono"><span class="c"># 実モデルで生成し、隔離サンドボックスで実テスト実行</span>
+python3 -m tehai <span class="o">run</span> <span class="s">"メール検証関数とその単体テストをPythonで実装"</span> \
+    <span class="o">--backend</span> ollama <span class="o">--sandbox</span> <span class="o">--out</span> ./out</span></pre>
+      <div class="call warn"><b>注意：</b>マルチチームを実モデルで回すと呼び出し回数が多く<b>遅い</b>（チーム×タスク×レビュー）。高リスク／少数タスクに絞るのが設計思想です。</div>
+    </section>
+
+    <section id="meta">
+      <h2><span class="n">5</span> Multi-Team（チーム編成で回す）</h2>
+      <p>Meta Orchestrator が目標から必要チームを選び、Team Contract の DAG で配分します。README系は Documentation だけ、認証系は <b>Security Team</b> が統合前に加わります。</p>
+<pre><span class="mono">python3 -m tehai <span class="o">meta</span> <span class="s">"ユーザー認証機能を実装する。トークンを安全に生成する"</span></span></pre>
+      <ul>
+        <li>失敗は <b>failure_type で分類して原因チームへ差し戻し</b>（盲目リトライしない）。例：要件曖昧→企画、統合衝突→統合。</li>
+        <li><b>Autonomous Loop Guard</b>：低リスクは自律回復、security/反復3回/コスト超過/本番・外部送信は停止＋承認ゲート。</li>
+        <li>高リスク設計では <b>Cross-Team Competition</b>（保守性/速度/セキュリティ案を比較）。</li>
+        <li><code>--autonomy supervised|autonomous_low_risk|manual …</code> で自律度、<code>--json</code> で全結果。</li>
+      </ul>
+    </section>
+
+    <section id="lib">
+      <h2><span class="n">6</span> ライブラリとして使う（Python API）</h2>
+<pre><span class="mono"><span class="c"># 単一チームのパイプライン</span>
+<span class="o">from</span> tehai <span class="o">import</span> Orchestrator
+plan = Orchestrator.default(backend=<span class="s">"null"</span>).plan(<span class="s">"ログイン検証を実装"</span>)
+print(plan.to_json())
+
+<span class="c"># マルチチーム</span>
+<span class="o">from</span> tehai.teams <span class="o">import</span> MetaOrchestrator
+res = MetaOrchestrator.default(backend=<span class="s">"null"</span>).run(<span class="s">"機能Xを実装する"</span>)
+print(res.final_status, res.metrics)</span></pre>
+      <p>サンドボックス実行付きは <code>Orchestrator.default("ollama", sandbox=True)</code>。失敗ルーティングの再現は <code>run(goal, injected_failures={"implementation_team": (FailureType.REQUIREMENT_AMBIGUITY, 1)})</code>。</p>
+    </section>
+
+    <section id="improve">
+      <h2><span class="n">7</span> 自己改善ループ（記録→提案→人間が採用）</h2>
+<pre><span class="mono"><span class="c"># 実行ログを残す → 指標と提案を見る → 採用可能 config を書き出す</span>
+python3 -m tehai <span class="o">run</span> <span class="s">"add a helper"</span> <span class="o">--save-log</span> <span class="o">--run-id</span> R-1
+python3 -m tehai <span class="o">evaluate</span> runs/R-1.jsonl
+python3 -m tehai <span class="o">calibrate</span> runs/R-1.jsonl <span class="o">--apply</span> cfg.json
+
+<span class="c"># 人間が cfg.json を確認してから採用</span>
+python3 -m tehai <span class="o">plan</span> <span class="s">"..."</span> <span class="o">--config</span> cfg.json</span></pre>
+      <div class="call tip">自己改善は<b>提案まで</b>。本番ロジック（チーム配分・ルーティング）を自動で書き換えることはしません。採用は常に人間の明示的な一手です。</div>
+    </section>
+
+    <section id="verify">
+      <h2><span class="n">8</span> 検証・テスト</h2>
+<pre><span class="mono"><span class="c"># 全テスト（標準ライブラリ unittest・依存ゼロ）</span>
+python3 -m unittest discover -s tests -t .
+
+<span class="c"># Multi-Team 検証シナリオ（意図的失敗含む）→ verification_report.md 生成</span>
+python3 -m tehai <span class="o">verify</span></span></pre>
+      <p>意図的な失敗（曖昧要件・セキュリティ・統合衝突・反復失敗・コスト超過）を注入して、<b>正しく止まり・正しく差し戻すか</b>を検査します。</p>
+    </section>
+
+    <section id="safe">
+      <h2><span class="n">9</span> 安全の約束</h2>
+      <ul>
+        <li><b>承認ゲート</b>：本番デプロイ・外部送信・削除・課金・秘密情報・権限変更は人間承認を通す。</li>
+        <li><b>最小権限</b>：子の権限は親（チーム）を超えない。レビュアーはコード修正不可、テスターは本番接続不可。</li>
+        <li><b>境界</b>：最大再帰深度3・最大委譲20・最大同時8・同一失敗3回で停止。「分解＝進捗」とはみなさない。</li>
+        <li><b>監査可能</b>：成果物に provenance、ログは追記専用、決定的で再現可能。</li>
+        <li><b>サンドボックス</b>：生成コード実行はネットワーク遮断＋秘密ディレクトリ隠蔽。既定OFF・明示オプトイン。</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <span class="mono">手配 / tehai — controlled · auditable · bounded</span>
+    <span class="mono">github.com/akihidem/tehai-core</span>
+  </footer>
+
+</div>
+</body>
+</html>

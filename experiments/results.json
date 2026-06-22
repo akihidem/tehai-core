@@ -1,0 +1,240 @@
+{
+  "aggregate": {
+    "A_human_org": {
+      "escaped_defects": 1,
+      "human_intervention_rate": 0.0,
+      "total_cost_usd": 29.56,
+      "total_model_calls": 611,
+      "true_success_rate": 0.6
+    },
+    "B_flat_dataflow": {
+      "escaped_defects": 0,
+      "human_intervention_rate": 0.2,
+      "total_cost_usd": 7.66,
+      "total_model_calls": 202,
+      "true_success_rate": 0.8
+    }
+  },
+  "backend": "null",
+  "cost_model": "tier-weighted model-call proxy (tehai.costmodel): 1 generation + 1 call per review lens, by tier",
+  "n_scenarios": 5,
+  "scenarios": [
+    {
+      "A": {
+        "composition": [
+          "product_planning_team",
+          "architecture_team",
+          "implementation_team",
+          "verification_team",
+          "integration_team",
+          "documentation_team"
+        ],
+        "cost_usd": 1.62,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "late_caught_blindspots": [],
+        "model_calls": 63,
+        "reroutes": 0,
+        "task_count": 19,
+        "task_success": true,
+        "team_count": 6,
+        "true_success": true
+      },
+      "B": {
+        "cost_usd": 0.55,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "local_retries": 0,
+        "model_calls": 27,
+        "node_count": 7,
+        "task_success": true,
+        "true_success": true,
+        "unmatched_defect_stages": []
+      },
+      "defects": {},
+      "key": "baseline_clean",
+      "note": "欠陥なし — 階層の純粋なオーバーヘッドを測る基準線",
+      "request": "二分探索のユーティリティ関数とその単体テストを実装する"
+    },
+    {
+      "A": {
+        "composition": [
+          "product_planning_team",
+          "architecture_team",
+          "implementation_team",
+          "verification_team",
+          "integration_team",
+          "documentation_team"
+        ],
+        "cost_usd": 3.82,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "late_caught_blindspots": [],
+        "model_calls": 171,
+        "reroutes": 2,
+        "task_count": 19,
+        "task_success": true,
+        "team_count": 6,
+        "true_success": true
+      },
+      "B": {
+        "cost_usd": 1.05,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "local_retries": 6,
+        "model_calls": 53,
+        "node_count": 7,
+        "task_success": true,
+        "true_success": true,
+        "unmatched_defect_stages": []
+      },
+      "defects": {
+        "implementation": {
+          "blind_spot": false,
+          "failure_type": null,
+          "resolve_after": 2
+        }
+      },
+      "key": "overt_impl",
+      "note": "明示的な実装バグ（どのレビューでも検出）。A=2回カスケード再ルート / B=ノード再試行",
+      "request": "ユーザー登録のメール形式バリデーションを実装する"
+    },
+    {
+      "A": {
+        "composition": [
+          "product_planning_team",
+          "architecture_team",
+          "implementation_team",
+          "verification_team",
+          "security_team",
+          "integration_team",
+          "documentation_team"
+        ],
+        "cost_usd": 20.7,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "late_caught_blindspots": [
+          "implementation"
+        ],
+        "model_calls": 222,
+        "reroutes": 0,
+        "task_count": 24,
+        "task_success": true,
+        "team_count": 7,
+        "true_success": true
+      },
+      "B": {
+        "cost_usd": 4.72,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "local_retries": 3,
+        "model_calls": 52,
+        "node_count": 7,
+        "task_success": true,
+        "true_success": true,
+        "unmatched_defect_stages": []
+      },
+      "defects": {
+        "implementation": {
+          "blind_spot": true,
+          "failure_type": "security_risk",
+          "resolve_after": 1
+        }
+      },
+      "key": "blindspot_security",
+      "note": "実装に潜む認証の盲点。A=生成チームは見逃し独立な下流で遅れて検出 / B=ノードの外部検証で即捕捉",
+      "request": "ログインAPIのパスワード照合処理を実装する"
+    },
+    {
+      "A": {
+        "composition": [
+          "documentation_team"
+        ],
+        "cost_usd": 0.16,
+        "escaped_defects": 1,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "late_caught_blindspots": [],
+        "model_calls": 8,
+        "reroutes": 0,
+        "task_count": 3,
+        "task_success": true,
+        "team_count": 1,
+        "true_success": false
+      },
+      "B": {
+        "cost_usd": 0.04,
+        "escaped_defects": 0,
+        "final_status": "completed",
+        "human_intervention_required": false,
+        "local_retries": 1,
+        "model_calls": 4,
+        "node_count": 1,
+        "task_success": true,
+        "true_success": true,
+        "unmatched_defect_stages": []
+      },
+      "defects": {
+        "documentation": {
+          "blind_spot": true,
+          "failure_type": null,
+          "resolve_after": 1
+        }
+      },
+      "key": "blindspot_doc_escape",
+      "note": "doc-only 構成で独立な下流検証が無い盲点。A=流出 / B=ノードで捕捉",
+      "request": "READMEのインストール手順の誤字を修正し整形する"
+    },
+    {
+      "A": {
+        "composition": [
+          "product_planning_team",
+          "architecture_team",
+          "implementation_team",
+          "verification_team",
+          "integration_team",
+          "documentation_team"
+        ],
+        "cost_usd": 3.26,
+        "escaped_defects": 0,
+        "final_status": "stop_as_failed",
+        "human_intervention_required": false,
+        "late_caught_blindspots": [],
+        "model_calls": 147,
+        "reroutes": 3,
+        "task_count": 11,
+        "task_success": false,
+        "team_count": 6,
+        "true_success": false
+      },
+      "B": {
+        "cost_usd": 1.3,
+        "escaped_defects": 0,
+        "final_status": "needs_human",
+        "human_intervention_required": true,
+        "local_retries": 6,
+        "model_calls": 66,
+        "node_count": 7,
+        "task_success": false,
+        "true_success": false,
+        "unmatched_defect_stages": []
+      },
+      "defects": {
+        "implementation": {
+          "blind_spot": false,
+          "failure_type": null,
+          "resolve_after": 4
+        }
+      },
+      "key": "exhausted_retry",
+      "note": "上限を超える厄介な欠陥。A=同一失敗3回で停止 / B=ローカル上限超過で人間ゲート（Bも万能ではない）",
+      "request": "ファイルアップロードのサイズ制限チェックを実装する"
+    }
+  ]
+}

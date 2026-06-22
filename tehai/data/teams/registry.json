@@ -1,0 +1,140 @@
+[
+  {
+    "team_id": "product_planning_team",
+    "team_name": "Product Planning Team",
+    "mission": "ユーザー要求を整理し、仕様と受入条件に翻訳する",
+    "responsibilities": ["要求整理", "仕様化", "受入条件定義", "優先順位付け", "スコープ管理"],
+    "internal_agents": ["ProductManager", "RequirementsReviewer"],
+    "allowed_task_types": ["spec_design", "summarization", "classification"],
+    "forbidden_task_types": ["code_implementation", "production_deploy", "security_approval", "business_scope_change"],
+    "required_inputs": ["user_request"],
+    "expected_outputs": ["requirements.md", "acceptance_criteria.md"],
+    "review_requirements": ["requirement_check"],
+    "escalation_rules": ["スコープ肥大化は Meta Orchestrator へ", "本質的に矛盾する要求は人間承認へ"],
+    "matches_keywords": ["仕様", "要件", "requirement", "spec", "企画", "planning"],
+    "phases": [
+      {"key": "clarify", "title": "要求整理", "role": "ProductManager", "task_type": "spec_design", "depends_on": []},
+      {"key": "criteria", "title": "受入条件定義", "role": "RequirementsReviewer", "task_type": "spec_design", "depends_on": ["clarify"]}
+    ]
+  },
+  {
+    "team_id": "architecture_team",
+    "team_name": "Architecture Team",
+    "mission": "システム全体設計・技術選定・モジュール分割・インターフェイス設計を行う",
+    "responsibilities": ["全体設計", "技術選定", "モジュール分割", "IF設計", "非機能要件整理"],
+    "internal_agents": ["SystemArchitect", "TechnicalLead"],
+    "allowed_task_types": ["architecture", "spec_design", "integration"],
+    "forbidden_task_types": ["code_implementation", "production_deploy", "security_approval", "business_scope_change"],
+    "required_inputs": ["requirements.md"],
+    "expected_outputs": ["architecture.md", "interfaces.md"],
+    "review_requirements": ["requirement_check"],
+    "escalation_rules": ["要件不足は Product Planning Team へ", "セキュリティ影響は Security Team へ"],
+    "matches_keywords": ["設計", "architecture", "構成", "技術選定", "アーキ"],
+    "phases": [
+      {"key": "design", "title": "全体設計", "role": "SystemArchitect", "task_type": "architecture", "depends_on": []},
+      {"key": "interfaces", "title": "インターフェイス設計", "role": "SystemArchitect", "task_type": "spec_design", "depends_on": ["design"]}
+    ]
+  },
+  {
+    "team_id": "implementation_team",
+    "team_name": "Implementation Team",
+    "mission": "設計済みの仕様を実行可能なコードとして実装する",
+    "responsibilities": ["コード生成", "既存コード修正", "ユニットテスト作成", "リファクタリング"],
+    "internal_agents": ["TechnicalLead", "BackendEngineer", "FrontendEngineer", "TestEngineer", "CodeReviewer"],
+    "allowed_task_types": ["code_implementation", "test_authoring", "code_review", "spec_design"],
+    "forbidden_task_types": ["production_deploy", "security_approval", "business_scope_change"],
+    "required_inputs": ["specification", "architecture_decision", "task_contract"],
+    "expected_outputs": ["source_code", "unit_tests", "implementation_report.md"],
+    "review_requirements": ["unit_test", "code_review", "requirement_check"],
+    "escalation_rules": [
+      "仕様矛盾を検出した場合は Product Planning Team に戻す",
+      "設計変更が必要な場合は Architecture Team に戻す",
+      "セキュリティ影響がある場合は Security Team に送る"
+    ],
+    "matches_keywords": ["実装", "code", "コード", "修正", "リファクタ", "機能", "feature", "implement"],
+    "phases": [
+      {"key": "plan", "title": "実装計画", "role": "TechnicalLead", "task_type": "spec_design", "depends_on": []},
+      {"key": "backend", "title": "バックエンド実装", "role": "BackendEngineer", "task_type": "code_implementation", "depends_on": ["plan"]},
+      {"key": "frontend", "title": "フロントエンド実装", "role": "FrontendEngineer", "task_type": "code_implementation", "depends_on": ["plan"]},
+      {"key": "tests", "title": "テスト作成", "role": "TestEngineer", "task_type": "test_authoring", "depends_on": ["backend", "frontend"]},
+      {"key": "review", "title": "コードレビュー", "role": "CodeReviewer", "task_type": "code_review", "depends_on": ["tests"]}
+    ]
+  },
+  {
+    "team_id": "verification_team",
+    "team_name": "Verification Team",
+    "mission": "成果物が受入条件を満たすか検証する",
+    "responsibilities": ["テスト実行", "回帰テスト", "受入条件確認", "品質評価"],
+    "internal_agents": ["QAEngineer", "EdgeCaseReviewer", "RequirementsReviewer"],
+    "allowed_task_types": ["qa", "test_authoring", "code_review"],
+    "forbidden_task_types": ["code_implementation", "production_deploy", "security_approval"],
+    "required_inputs": ["source_code", "acceptance_criteria.md"],
+    "expected_outputs": ["qa_report.md"],
+    "review_requirements": ["unit_test", "requirement_check"],
+    "escalation_rules": ["実装欠陥は Implementation Team へ", "受入条件不備は Product Planning Team へ"],
+    "matches_keywords": ["検証", "テスト", "qa", "verify", "品質"],
+    "phases": [
+      {"key": "run", "title": "テスト実行", "role": "QAEngineer", "task_type": "qa", "depends_on": []},
+      {"key": "edge", "title": "境界条件確認", "role": "EdgeCaseReviewer", "task_type": "code_review", "depends_on": ["run"]},
+      {"key": "accept", "title": "受入確認", "role": "RequirementsReviewer", "task_type": "code_review", "depends_on": ["run"]}
+    ]
+  },
+  {
+    "team_id": "security_team",
+    "team_name": "Security Team",
+    "mission": "成果物に重大なセキュリティ欠陥がないか検証し、リスク採否を判断する",
+    "responsibilities": ["脅威分析", "認証・認可確認", "秘密情報漏洩確認", "外部送信リスク確認", "依存ライブラリ確認"],
+    "internal_agents": ["SecurityLead", "ThreatModeler", "StaticAnalysisAgent", "DependencyAuditor", "RiskJudge"],
+    "allowed_task_types": ["security_review"],
+    "forbidden_task_types": ["code_implementation", "production_deploy", "business_scope_change"],
+    "required_inputs": ["source_code", "threat_model"],
+    "expected_outputs": ["security_review.md"],
+    "review_requirements": ["security_review", "requirement_check"],
+    "escalation_rules": ["認証・認可・秘密情報の重大問題は人間承認ゲートへ"],
+    "matches_keywords": ["セキュリティ", "security", "認証", "認可", "脆弱", "秘密", "auth", "credential", "exploit", "監査"],
+    "phases": [
+      {"key": "lead", "title": "観点設計", "role": "SecurityLead", "task_type": "security_review", "depends_on": []},
+      {"key": "threat", "title": "脅威モデリング", "role": "ThreatModeler", "task_type": "security_review", "depends_on": ["lead"]},
+      {"key": "static", "title": "静的解析", "role": "StaticAnalysisAgent", "task_type": "security_review", "depends_on": ["lead"]},
+      {"key": "deps", "title": "依存監査", "role": "DependencyAuditor", "task_type": "security_review", "depends_on": ["lead"]},
+      {"key": "risk", "title": "リスク裁定", "role": "RiskJudge", "task_type": "security_review", "depends_on": ["threat", "static", "deps"]}
+    ]
+  },
+  {
+    "team_id": "integration_team",
+    "team_name": "Integration Team",
+    "mission": "各チームの成果物を統合し、コンフリクトを解消してリリース前確認を行う",
+    "responsibilities": ["成果物統合", "コンフリクト解消", "CI/CD連携", "リリース前確認"],
+    "internal_agents": ["Synthesizer", "CodeReviewer"],
+    "allowed_task_types": ["integration", "code_review"],
+    "forbidden_task_types": ["production_deploy", "business_scope_change"],
+    "required_inputs": ["source_code", "qa_report.md"],
+    "expected_outputs": ["synthesis.md", "integration_report.md"],
+    "review_requirements": ["requirement_check"],
+    "escalation_rules": ["統合衝突は Implementation Team でなく原因チームへ", "本番反映は人間承認ゲートへ"],
+    "matches_keywords": ["統合", "integration", "マージ", "merge", "ci"],
+    "phases": [
+      {"key": "integrate", "title": "統合", "role": "Synthesizer", "task_type": "integration", "depends_on": []},
+      {"key": "conflict", "title": "コンフリクト確認", "role": "CodeReviewer", "task_type": "code_review", "depends_on": ["integrate"]}
+    ]
+  },
+  {
+    "team_id": "documentation_team",
+    "team_name": "Documentation Team",
+    "mission": "README・設計書・API仕様・運用手順などのドキュメントを作成する",
+    "responsibilities": ["README作成", "設計書作成", "API仕様書作成", "変更履歴作成", "運用手順書作成"],
+    "internal_agents": ["Editor", "Drafter", "CopyEditor", "FactChecker"],
+    "allowed_task_types": ["content", "doc_formatting", "summarization"],
+    "forbidden_task_types": ["code_implementation", "production_deploy", "security_approval"],
+    "required_inputs": ["source_code"],
+    "expected_outputs": ["README.md", "changelog.md"],
+    "review_requirements": ["fact_check"],
+    "escalation_rules": ["事実性に重大な疑義があれば原因チームへ確認"],
+    "matches_keywords": ["ドキュメント", "document", "readme", "文書", "手順", "誤字", "typo", "整形"],
+    "phases": [
+      {"key": "editorial", "title": "編集方針", "role": "Editor", "task_type": "content", "depends_on": []},
+      {"key": "draft", "title": "執筆", "role": "Drafter", "task_type": "content", "depends_on": ["editorial"]},
+      {"key": "copyedit", "title": "校正", "role": "CopyEditor", "task_type": "doc_formatting", "depends_on": ["draft"]}
+    ]
+  }
+]

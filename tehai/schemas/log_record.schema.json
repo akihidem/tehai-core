@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tehai.local/schemas/log_record.schema.json",
+  "title": "ExecutionLogRecord",
+  "description": "One append-only row in the execution ledger. Feeds the evaluation store.",
+  "type": "object",
+  "required": ["run_id", "task_id", "task_type", "selected_model"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "task_type": { "type": "string" },
+    "decomposition_strategy": { "type": ["string", "null"] },
+    "selected_model": { "type": "string", "enum": ["small", "medium", "large"] },
+    "agent_template": { "type": ["string", "null"] },
+    "estimated_cost": { "type": ["number", "null"] },
+    "actual_cost": { "type": ["number", "null"] },
+    "estimated_seconds": { "type": ["number", "null"] },
+    "elapsed_seconds": { "type": ["number", "null"] },
+    "review_score": { "type": ["number", "null"] },
+    "rework_count": { "type": ["integer", "null"] },
+    "test_pass_rate": { "type": ["number", "null"] },
+    "escalated": { "type": ["boolean", "null"] },
+    "human_override": { "type": ["boolean", "null"] },
+    "judge_decision": { "type": ["string", "null"] },
+    "failure_reason": { "type": ["string", "null"] },
+    "ts": { "type": ["string", "null"] }
+  }
+}

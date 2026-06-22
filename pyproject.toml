@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tehai"
+version = "0.1.0"
+description = "手配 — a controlled, auditable delegation layer that turns a request into a DAG of small, contract-bound subtasks routed to the cheapest capable model."
+readme = "README.md"
+requires-python = ">=3.10"
+# Zero third-party runtime dependencies. Standard library only.
+dependencies = []
+license = { text = "MIT" }
+
+[project.scripts]
+tehai = "tehai.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["tehai*"]
+
+[tool.setuptools.package-data]
+tehai = ["schemas/*.json", "data/agents/*.json"]

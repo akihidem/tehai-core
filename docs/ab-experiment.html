@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="hz:slide-selector" content=".infographic" />
+<meta name="hz:canvas-width" content="1080" />
+<meta name="hz:canvas-height" content="2820" />
+<title>実証実験: 人間組織 (A) vs 検証中心データフロー (B) — tehai</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --paper:#f5f1e8; --ink:#1b2330; --muted:#5b6675; --line:#e0d9c7;
+    --teal:#2c6e6b; --teal-d:#205c59; --amber:#c2762c; --amber-d:#9a5b1c;
+    --dark:#2a2f3a; --gray:#6c7686; --good:#2c6e6b; --bad:#b4532a;
+  }
+  body{ background:#22262f; padding:40px 0; font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif; color:var(--ink); }
+  .serif{ font-family:"Yu Mincho","Hiragino Mincho ProN",serif; }
+  .mono{ font-family:"SF Mono","DejaVu Sans Mono","Roboto Mono",monospace; }
+
+  .infographic{ width:1080px; min-height:2820px; margin:0 auto; background:var(--paper);
+    position:relative; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.4); }
+  .infographic::before{ content:""; position:absolute; top:0; left:0; right:0; height:10px;
+    background:linear-gradient(90deg,var(--amber) 0 50%, var(--teal) 50% 100%); }
+  .pad{ padding:0 72px; }
+
+  header{ padding:64px 72px 34px; border-bottom:1px solid var(--line); }
+  .kicker{ font-size:15px; letter-spacing:.32em; color:var(--teal); font-weight:700; }
+  .kicker .en{ color:#a59f88; letter-spacing:.18em; }
+  h1{ font-size:52px; line-height:1.16; margin:16px 0 14px; }
+  .sub{ font-size:19px; line-height:1.7; color:var(--muted); max-width:880px; }
+  .meta{ margin-top:14px; font-size:14px; color:var(--teal-d); }
+  .meta b{ color:var(--ink); }
+
+  .sh{ display:flex; align-items:center; gap:14px; margin:48px 0 20px; }
+  .sh .bar{ width:7px; height:32px; background:var(--amber); border-radius:3px; }
+  .sh h2{ font-size:27px; } .sh .en{ font-size:12px; letter-spacing:.2em; color:#a59f88; }
+
+  /* three metric cards */
+  .stats{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+  .stat{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px 22px 20px; }
+  .stat .lab{ font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .stat .lab .num{ color:#fff; background:var(--amber); border-radius:6px; font-size:12px; padding:1px 7px; margin-right:8px; }
+  .stat .sub2{ font-size:12.5px; color:var(--muted); min-height:32px; }
+  .vs{ display:flex; align-items:flex-end; gap:14px; margin:12px 0 8px; }
+  .vs .col{ flex:1; text-align:center; border-radius:10px; padding:12px 6px; }
+  .vs .A{ background:#f6ecdb; } .vs .B{ background:#e7f0ee; }
+  .vs .who{ font-size:12px; letter-spacing:.08em; font-weight:700; }
+  .vs .A .who{ color:var(--amber-d); } .vs .B .who{ color:var(--teal-d); }
+  .vs .big{ font-size:30px; font-weight:800; line-height:1.1; margin-top:4px; }
+  .vs .A .big{ color:var(--amber-d); } .vs .B .big{ color:var(--teal-d); }
+  .vs .unit{ font-size:11px; color:var(--muted); }
+  .win{ font-size:12.5px; text-align:center; color:var(--teal-d); font-weight:700; }
+  .win.note{ color:var(--muted); font-weight:400; }
+
+  /* cost bar chart */
+  .chart{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:24px 26px; }
+  .legend{ display:flex; gap:20px; font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .legend i{ width:13px; height:13px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px; }
+  .crow{ margin:11px 0; }
+  .crow .name{ font-size:13.5px; color:#3c4654; margin-bottom:5px; display:flex; justify-content:space-between; }
+  .crow .name .k{ font-weight:700; }
+  .bars .b{ height:17px; border-radius:4px; margin:3px 0; position:relative; min-width:3px; }
+  .bars .b.A{ background:var(--amber); } .bars .b.B{ background:var(--teal); }
+  .bars .b span{ position:absolute; right:-52px; top:-1px; font-size:11.5px; color:#3c4654; white-space:nowrap; }
+  .bars .b.full span{ right:auto; left:8px; color:#fff; top:0; }
+
+  /* scenario table */
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; background:#fff;
+    border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  th,td{ padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th{ font-size:12px; letter-spacing:.04em; color:var(--teal-d); background:#faf7f0; }
+  tr:last-child td{ border-bottom:none; }
+  td .k{ font-weight:700; }
+  .ok{ color:var(--good); font-weight:700; } .no{ color:var(--bad); font-weight:700; }
+  td.tell{ color:var(--muted); font-size:12.5px; }
+
+  /* verdict */
+  .verdict{ margin-top:48px; background:var(--dark); color:#eef1f5; border-radius:16px; padding:38px 42px; }
+  .verdict .vh{ font-size:14px; letter-spacing:.24em; color:#8fb6b2; font-weight:700; }
+  .verdict .big{ font-size:27px; line-height:1.42; margin:12px 0 14px; }
+  .verdict .big b{ color:#e6b873; }
+  .verdict ul{ list-style:none; display:grid; gap:11px; }
+  .verdict li{ font-size:16px; line-height:1.5; padding-left:26px; position:relative; color:#d4dae2; }
+  .verdict li::before{ content:""; position:absolute; left:2px; top:9px; width:9px; height:9px; border-radius:50%; background:#9fd3cd; }
+  .verdict li b{ color:#fff; }
+  .verdict .seal{ margin-top:20px; padding-top:18px; border-top:1px solid #444b59; font-size:15px; color:#9fd3cd; }
+
+  footer{ margin-top:30px; padding:24px 72px 38px; border-top:1px solid var(--line); color:var(--muted); font-size:12.5px; }
+  footer .tv{ margin-bottom:8px; }
+  footer .tv b{ color:var(--amber-d); }
+  footer .row2{ display:flex; justify-content:space-between; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="infographic">
+
+  <header>
+    <div class="kicker">手配 <span class="en">/ TEHAI · 実証実験 · A/B EXPERIMENT</span></div>
+    <h1 class="serif">人間組織 (A) vs<br>検証中心データフロー (B)</h1>
+    <p class="sub">「AI前提なら平らな検証中心の方が良いのでは?」という問いを主張で終わらせず、tehai 上で実測。同じ要求 <b>5本</b>を両アーキに流し、<b>信頼性・コスト・人間介入</b>を比較した。</p>
+    <div class="meta">backend <b>null</b>（決定的・2回走らせて byte 一致） · 既存コード無改変 · <b>216 テスト全 green</b> · 両者のコストは同一 <span class="mono">costmodel</span> で計上</div>
+  </header>
+
+  <div class="pad">
+
+    <div class="sh"><span class="bar"></span><h2>3つの指標（5本の集計）</h2><span class="en">AGGREGATE</span></div>
+    <div class="stats">
+      <div class="stat">
+        <div class="lab"><span class="num">①</span>信頼性</div>
+        <div class="sub2">完了かつ欠陥流出ゼロの割合</div>
+        <div class="vs">
+          <div class="col A"><div class="who">A 人間組織</div><div class="big">0.6</div><div class="unit">true-success</div></div>
+          <div class="col B"><div class="who">B 平ら検証</div><div class="big">0.8</div><div class="unit">true-success</div></div>
+        </div>
+        <div class="win">流出欠陥 A <b>1</b> / B <b>0</b> → B ✓</div>
+      </div>
+      <div class="stat">
+        <div class="lab"><span class="num">②</span>コスト</div>
+        <div class="sub2">tier重みコール代理（再試行・再ルート込み）</div>
+        <div class="vs">
+          <div class="col A"><div class="who">A 人間組織</div><div class="big">$29.6</div><div class="unit">611 calls</div></div>
+          <div class="col B"><div class="who">B 平ら検証</div><div class="big">$7.7</div><div class="unit">202 calls</div></div>
+        </div>
+        <div class="win">B が <b>約 3.9× 安い</b> → B ✓</div>
+      </div>
+      <div class="stat">
+        <div class="lab"><span class="num">③</span>人間介入</div>
+        <div class="sub2">自律で解けず人間に上げた割合</div>
+        <div class="vs">
+          <div class="col A"><div class="who">A 人間組織</div><div class="big">0.0</div><div class="unit">rate</div></div>
+          <div class="col B"><div class="who">B 平ら検証</div><div class="big">0.2</div><div class="unit">rate</div></div>
+        </div>
+        <div class="win note">※ B は詰まると<b>人間に上げる</b>／A は黙って停止（後述）</div>
+      </div>
+    </div>
+
+    <div class="sh"><span class="bar"></span><h2>コスト：シナリオ別（$）</h2><span class="en">COST PER SCENARIO</span></div>
+    <div class="chart">
+      <div class="legend"><span><i style="background:#c2762c"></i>A 人間組織（階層＋カスケード再ルート）</span><span><i style="background:#2c6e6b"></i>B 平ら検証（ノードローカル再試行）</span></div>
+
+      <div class="crow"><div class="name"><span class="k">baseline_clean（欠陥なし）</span><span>純オーバーヘッド ≈2.9×</span></div>
+        <div class="bars"><div class="b A" style="width:7.4%"><span>$1.62</span></div><div class="b B" style="width:2.5%"><span>$0.55</span></div></div></div>
+
+      <div class="crow"><div class="name"><span class="k">overt_impl（明示バグ）</span><span>信頼性同じ・コストだけ差</span></div>
+        <div class="bars"><div class="b A" style="width:17.4%"><span>$3.82</span></div><div class="b B" style="width:4.8%"><span>$1.05</span></div></div></div>
+
+      <div class="crow"><div class="name"><span class="k">blindspot_security（認証の盲点）</span><span>A=下流で遅れて検出（LARGE×カスケード）</span></div>
+        <div class="bars"><div class="b A full" style="width:94%"><span>$20.70</span></div><div class="b B" style="width:21.5%"><span>$4.72</span></div></div></div>
+
+      <div class="crow"><div class="name"><span class="k">blindspot_doc_escape（doc-only の盲点）</span><span>A=欠陥を出荷 / B=捕捉</span></div>
+        <div class="bars"><div class="b A" style="width:1.2%"><span>$0.16</span></div><div class="b B" style="width:0.6%"><span>$0.04</span></div></div></div>
+
+      <div class="crow"><div class="name"><span class="k">exhausted_retry（上限超）</span><span>両者失敗 / B は人間ゲート</span></div>
+        <div class="bars"><div class="b A" style="width:14.8%"><span>$3.26</span></div><div class="b B" style="width:5.9%"><span>$1.30</span></div></div></div>
+    </div>
+
+    <div class="sh"><span class="bar"></span><h2>シナリオが語ること</h2><span class="en">WHAT EACH SHOWS</span></div>
+    <table>
+      <tr><th>シナリオ</th><th>A（信頼性 / 流出）</th><th>B（信頼性 / 流出）</th><th>示すこと</th></tr>
+      <tr><td><span class="k">baseline_clean</span></td><td><span class="ok">成功</span> / 0</td><td><span class="ok">成功</span> / 0</td><td class="tell">欠陥ゼロでも階層は約2.9×高い＝7チーム多重の純オーバーヘッド</td></tr>
+      <tr><td><span class="k">overt_impl</span></td><td><span class="ok">成功</span> / 0</td><td><span class="ok">成功</span> / 0</td><td class="tell">明示バグは両者解決。差はコストのみ（A=2回カスケード）</td></tr>
+      <tr><td><span class="k">blindspot_security</span></td><td><span class="ok">成功</span> / 0</td><td><span class="ok">成功</span> / 0</td><td class="tell">B=ノードの外部検証で即捕捉。A=独立な下流で遅れて捕捉＝高コスト</td></tr>
+      <tr><td><span class="k">blindspot_doc_escape</span></td><td><span class="no">失敗</span> / <span class="no">1 流出</span></td><td><span class="ok">成功</span> / 0</td><td class="tell">独立な下流検証が無く A は盲点を出荷。検証中心 B は捕捉</td></tr>
+      <tr><td><span class="k">exhausted_retry</span></td><td><span class="no">失敗</span> / 0</td><td><span class="no">失敗</span> / 0</td><td class="tell">B も万能でない。上限超は人間ゲート（A は黙って停止）</td></tr>
+    </table>
+
+    <div class="verdict">
+      <div class="vh">結論 · VERDICT</div>
+      <div class="big">「B が<b>常に</b>勝つ」ではない。だが数字は問いに答えた——<br><b>階層の主コストはオーバーヘッド</b>、<b>検証中心は盲点流出を拾う</b>。</div>
+      <ul>
+        <li><b>欠陥ゼロでも</b>階層は約 2.9×高い（7チーム多重＝純オーバーヘッド）</li>
+        <li><b>overt</b> は両者同信頼性・コストだけ差／<b>blindspot-doc</b> は A が欠陥を出荷・B は捕捉</li>
+        <li><b>B も万能でない</b>：上限超過は人間に上げる（A は黙って失敗する分むしろ危うい）</li>
+        <li>A の余分なコストは成果物の種類（関心の分離）を生むが、<b>この5本では信頼性に効かなかった</b></li>
+      </ul>
+      <div class="seal">→ <span class="mono">docs/ai-native-org.html</span> の主張と<b>整合</b>。主張側の修正は不要だった（実測が裏取り）。</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="tv"><b>Threats to Validity</b>（隠さない）: 決定的な構造シミュレーション（実LLMベンチではない）／コストは tier 重みコール数の代理／A の blind-spot の遅延検出・流出だけは A の実構成に基づきハーネスが規則でモデル化（B の捕捉は実コード）。</div>
+    <div class="row2"><span class="mono">手配 / tehai · experiments/org_vs_dataflow.py · 216 tests green</span><span class="mono">github.com/akihidem/tehai-core</span></div>
+  </footer>
+
+</div>
+</body>
+</html>

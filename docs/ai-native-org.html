@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="hz:slide-selector" content=".infographic" />
+<meta name="hz:canvas-width" content="1080" />
+<meta name="hz:canvas-height" content="2680" />
+<title>AI前提の時代に、人間組織の体系は最適か? — tehai 設計検討</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --paper:#f5f1e8; --ink:#1b2330; --muted:#5b6675; --line:#e0d9c7;
+    --teal:#2c6e6b; --teal-d:#205c59; --amber:#c2762c; --amber-d:#9a5b1c;
+    --dark:#2a2f3a; --gray:#6c7686;
+  }
+  body{ background:#22262f; padding:40px 0; font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif; color:var(--ink); }
+  .serif{ font-family:"Yu Mincho","Hiragino Mincho ProN",serif; }
+  .mono{ font-family:"SF Mono","DejaVu Sans Mono","Roboto Mono",monospace; }
+
+  .infographic{
+    width:1080px; min-height:2680px; margin:0 auto; background:var(--paper);
+    position:relative; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.4);
+  }
+  .infographic::before{ content:""; position:absolute; top:0; left:0; right:0; height:10px;
+    background:linear-gradient(90deg,var(--teal) 0 55%, var(--amber) 55% 100%); }
+
+  .pad{ padding:0 72px; }
+
+  /* header */
+  header{ padding:66px 72px 38px; border-bottom:1px solid var(--line); }
+  .kicker{ font-size:15px; letter-spacing:.34em; color:var(--teal); font-weight:700; }
+  .kicker .en{ color:#a59f88; letter-spacing:.18em; }
+  h1{ font-size:58px; line-height:1.16; margin:18px 0 16px; letter-spacing:.01em; }
+  .sub{ font-size:20px; line-height:1.7; color:var(--muted); max-width:860px; }
+
+  /* reframe band */
+  .reframe{ margin:0 72px; padding:30px 36px; background:#ecf1ef; border-left:6px solid var(--teal);
+    border-radius:0 10px 10px 0; margin-top:40px; }
+  .reframe .q{ font-size:24px; line-height:1.6; font-weight:700; }
+  .reframe .q b{ color:var(--teal-d); }
+  .reframe .note{ font-size:17px; color:var(--muted); margin-top:10px; line-height:1.6; }
+  .reframe .note b{ color:var(--amber-d); }
+
+  /* section heading */
+  .sh{ display:flex; align-items:center; gap:14px; margin:54px 0 22px; }
+  .sh .bar{ width:7px; height:34px; background:var(--amber); border-radius:3px; }
+  .sh h2{ font-size:30px; letter-spacing:.01em; }
+  .sh .en{ font-size:13px; letter-spacing:.22em; color:#a59f88; margin-left:4px; }
+
+  /* constraint table */
+  .legend{ display:flex; gap:20px; flex-wrap:wrap; font-size:14px; color:var(--muted); margin:-6px 0 18px; }
+  .legend span{ display:inline-flex; align-items:center; gap:7px; }
+  .dot{ width:13px; height:13px; border-radius:4px; display:inline-block; }
+  .ctab{ border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .crow{ display:grid; grid-template-columns:300px 1fr 132px; align-items:center; border-bottom:1px solid var(--line); }
+  .crow:last-child{ border-bottom:none; }
+  .crow:nth-child(even){ background:#faf7f0; }
+  .crow > div{ padding:16px 20px; }
+  .crow .c1{ font-weight:700; font-size:16.5px; line-height:1.45; border-right:1px solid var(--line); }
+  .crow .c2{ font-size:16px; color:#3c4654; line-height:1.5; }
+  .crow .c2 em{ font-style:normal; color:var(--amber-d); font-weight:700; }
+  .chip{ text-align:center; }
+  .chip span{ display:inline-block; padding:5px 12px; border-radius:20px; font-size:13.5px; font-weight:700; color:#fff; }
+  .k-drop{ background:var(--amber); } .k-keep{ background:var(--teal); } .k-rep{ background:var(--gray); }
+  .crow.star .c1::after{ content:"★"; color:var(--amber); margin-left:6px; }
+
+  /* engine vs skin */
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .panel{ border-radius:14px; padding:26px 28px; }
+  .panel h3{ font-size:21px; margin-bottom:4px; }
+  .panel .tag{ font-size:13px; letter-spacing:.16em; font-weight:700; margin-bottom:14px; }
+  .panel ul{ list-style:none; }
+  .panel li{ font-size:16px; line-height:1.5; padding:7px 0 7px 24px; position:relative; }
+  .panel li::before{ content:""; position:absolute; left:2px; top:15px; width:9px; height:9px; border-radius:50%; }
+  .panel .arrow{ font-size:15px; line-height:1.55; margin-top:14px; padding-top:14px; border-top:1px dashed rgba(0,0,0,.18); }
+  .p-keep{ background:#e7f0ee; border:1px solid #cfe0dc; }
+  .p-keep h3,.p-keep .tag{ color:var(--teal-d); }
+  .p-keep li::before{ background:var(--teal); }
+  .p-keep .arrow{ color:var(--teal-d); }
+  .p-rethink{ background:#f7ecda; border:1px solid #ecd9bb; }
+  .p-rethink h3,.p-rethink .tag{ color:var(--amber-d); }
+  .p-rethink li::before{ background:var(--amber); }
+  .p-rethink .arrow{ color:var(--amber-d); }
+  .p-rethink .warn{ font-size:14.5px; color:var(--amber-d); margin-top:10px; font-weight:700; }
+
+  /* alternatives cards */
+  .cards{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px; }
+  .card.wide{ grid-column:1 / -1; }
+  .card .t{ font-size:18px; font-weight:700; color:var(--teal-d); margin-bottom:6px; }
+  .card .t .n{ display:inline-block; width:24px; height:24px; line-height:24px; text-align:center; background:var(--teal); color:#fff; border-radius:7px; font-size:13px; margin-right:9px; }
+  .card .d{ font-size:15.5px; line-height:1.55; color:#3c4654; }
+  .card .d b{ color:var(--amber-d); }
+
+  /* conclusion */
+  .verdict{ margin-top:54px; background:var(--dark); color:#eef1f5; border-radius:16px; padding:40px 44px; }
+  .verdict .vh{ font-size:14px; letter-spacing:.24em; color:#8fb6b2; font-weight:700; }
+  .verdict .big{ font-size:30px; line-height:1.45; margin:12px 0 6px; }
+  .verdict .big b{ color:#e6b873; }
+  .verdict .lead{ font-size:17px; line-height:1.7; color:#c3cad4; }
+  .steps{ margin:24px 0 8px; display:grid; gap:12px; }
+  .step{ display:grid; grid-template-columns:38px 1fr; align-items:start; gap:14px; }
+  .step .num{ width:38px; height:38px; border-radius:10px; background:#3b4250; color:#e6b873; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:17px; }
+  .step .txt{ font-size:16.5px; line-height:1.5; padding-top:6px; }
+  .step .txt b{ color:#9fd3cd; }
+  .deepest{ margin-top:24px; padding-top:22px; border-top:1px solid #444b59; font-size:18px; line-height:1.65; }
+  .deepest b{ color:#9fd3cd; }
+
+  /* spectrum */
+  .spectrum{ margin:30px 0 4px; }
+  .spectrum .track{ position:relative; height:10px; border-radius:6px;
+    background:linear-gradient(90deg,var(--amber) 0%, #b89a6a 50%, var(--teal) 100%); }
+  .spectrum .pin{ position:absolute; left:31%; top:-7px; width:24px; height:24px; border-radius:50%;
+    background:#fff; border:4px solid var(--ink); transform:translateX(-50%); }
+  .spectrum .lab{ display:flex; justify-content:space-between; margin-top:14px; font-size:15px; }
+  .spectrum .lab .l{ color:var(--amber-d); font-weight:700; } .spectrum .lab .r{ color:var(--teal-d); font-weight:700; }
+  .spectrum .now{ text-align:center; font-size:13.5px; color:#cdd3dc; margin-top:6px; }
+
+  footer{ margin-top:48px; padding:26px 72px 40px; border-top:1px solid var(--line); color:var(--muted);
+    font-size:14px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+</style>
+</head>
+<body>
+<div class="infographic">
+
+  <header>
+    <div class="kicker">手配 <span class="en">/ TEHAI · 設計検討 · DESIGN INQUIRY</span></div>
+    <h1 class="serif">AI前提の時代に、<br>人間組織の体系は最適か?</h1>
+    <p class="sub">tehai は人間の開発組織（企画・設計・実装・検証・セキュリティ…）を参考に作った。だが <b>AIネイティブな最適構造</b>は、それと同じとは限らない。前提から問い直す。</p>
+  </header>
+
+  <div class="reframe">
+    <div class="q">人間の組織は<b>「人間という実行主体の制約」への解</b>。<br>→ 問うべきは『その制約は <b>AIでも成り立つか?</b>』</div>
+    <div class="note">成り立たない制約への解を移植していれば、それは最適ではなく <b>擬人的な負債</b>。</div>
+  </div>
+
+  <div class="pad">
+
+    <div class="sh"><span class="bar"></span><h2>制約は AI に転移するか</h2><span class="en">DOES THE CONSTRAINT TRANSFER?</span></div>
+    <div class="legend">
+      <span><i class="dot" style="background:#2c6e6b"></i>AIにも残る（保つ）</span>
+      <span><i class="dot" style="background:#c2762c"></i>AIでは緩む／逆転（人間専用の解）</span>
+      <span><i class="dot" style="background:#6c7686"></i>別物に置換</span>
+    </div>
+    <div class="ctab">
+      <div class="crow">
+        <div class="c1">認知が有界 → 専門分業</div>
+        <div class="c2">文脈上限は有界だが拡大中・1モデルが多役こなせる</div>
+        <div class="chip"><span class="k-drop">半分緩む</span></div>
+      </div>
+      <div class="crow star">
+        <div class="c1">通信が遅く高コスト → 階層＝通信節約装置</div>
+        <div class="c2">通信は<em>安い・速い</em>・構造化全文を多対多で渡せる<br><em>⇒ 階層の最大の存在理由が消える</em></div>
+        <div class="chip"><span class="k-drop">逆転</span></div>
+      </div>
+      <div class="crow">
+        <div class="c1">インセンティブ不一致・サボり → 管理・承認</div>
+        <div class="c2">私利は無い。だが<em>幻覚・確信的誤り・報酬ハック</em>という別の不信頼性 → レビューは要るが理由が違う</div>
+        <div class="chip"><span class="k-rep">置換</span></div>
+      </div>
+      <div class="crow">
+        <div class="c1">記憶の喪失 → 引き継ぎ・文書</div>
+        <div class="c2">共有・追記型の記憶が原理上可能</div>
+        <div class="chip"><span class="k-drop">緩む</span></div>
+      </div>
+      <div class="crow">
+        <div class="c1">専門家育成が高コスト → 固定の専門役</div>
+        <div class="c2">“専門役”がほぼ無料で即時生成できる → 固定ロールの経済的理由が弱い</div>
+        <div class="chip"><span class="k-drop">逆転</span></div>
+      </div>
+      <div class="crow">
+        <div class="c1">反復が遅い（会議・日単位）</div>
+        <div class="c2">秒。生成-検証-修正を100回回す構造が成立する</div>
+        <div class="chip"><span class="k-drop">逆転</span></div>
+      </div>
+      <div class="crow star">
+        <div class="c1">人間への可監査性・責任所在</div>
+        <div class="c2">AIだからこそ<em>一層重要</em>。承認ゲート・責任の在り処を人間に読ませる</div>
+        <div class="chip"><span class="k-keep">残る</span></div>
+      </div>
+    </div>
+
+    <div class="sh"><span class="bar"></span><h2>エンジン と スキンを分ける</h2><span class="en">ENGINE vs SKIN</span></div>
+    <div class="split">
+      <div class="panel p-keep">
+        <h3>エンジン</h3>
+        <div class="tag">AIネイティブ・概ね正しい（保つ）</div>
+        <ul>
+          <li>契約・型付き DAG</li>
+          <li>多因子ルーティング・再帰ガード</li>
+          <li>外部錨検証（盲点を共有しない別系統）</li>
+          <li>承認ゲート・provenance・原因別差し戻し</li>
+        </ul>
+        <div class="arrow">→ AIの真の制約（信頼性・文脈・コスト・統治）に組まれている</div>
+      </div>
+      <div class="panel p-rethink">
+        <h3>人間組織スキン</h3>
+        <div class="tag">一部は惰性（問い直す）</div>
+        <ul>
+          <li>7つの名前付きチーム</li>
+          <li>Meta → Team → Agent の3階層</li>
+          <li>固定された専門ロール</li>
+        </ul>
+        <div class="arrow">→ 可読性の部分＝価値 ／ 帯域のための階層＝惰性</div>
+        <div class="warn">⚠ 移植した人間専用の解：階層・固定ロール・引き継ぎ</div>
+      </div>
+    </div>
+
+    <div class="sh"><span class="bar"></span><h2>AIネイティブなら“最適”は検証に寄る</h2><span class="en">RE-CENTER ON VERIFICATION</span></div>
+    <div class="cards">
+      <div class="card"><div class="t"><span class="n">1</span>検証中心 / proof-carrying</div><div class="d">役割でなく<b>「主張とその証拠」</b>を軸に。組織は generate→外部錨→admit のパイプ。</div></div>
+      <div class="card"><div class="t"><span class="n">2</span>型付きデータフロー</div><div class="d">「チーム」はほぼ vestigial。本質は契約DAG＋ルーティング＋検証。<b>tehai は既に7割これ</b>。</div></div>
+      <div class="card"><div class="t"><span class="n">3</span>市場・ブラックボード</div><div class="d">固定階層でなく入札＋共有黒板。安い通信・即時生成を活かす（<b>統治は難しい</b>）。</div></div>
+      <div class="card"><div class="t"><span class="n">4</span>集団・進化</div><div class="d">多様な試行を並走→外部錨で選抜→組換え（§15 競合の発展形）。</div></div>
+      <div class="card wide"><div class="t"><span class="n">5</span>再帰単一ループ（rinne 型）</div><div class="d">「組織」は過剰。原子的主張ごとの密な <b>generate-verify-adjudicate</b> が原始体。teams は「各ノードに適用されるループ」に溶ける。</div></div>
+    </div>
+
+    <div class="verdict">
+      <div class="vh">判定 · VERDICT</div>
+      <div class="big">「一番最適」とは <b>言えない</b>。<br>統治的に妥当な“<b>局所</b>”最適であって、global 最適ではない。</div>
+      <div class="lead">人間組織体系は、可読性と実績ある分解語彙を取るために選んだ妥当な設計。だが「人間が主権を保つ」目的に最適化された局所解で、AIネイティブの大域解とは別物。</div>
+
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="txt">人間固有の制約を解く部分（<b>帯域のための階層・固定ロール・引き継ぎ</b>）を見分けて、平らに／オンデマンドにする</div></div>
+        <div class="step"><div class="num">2</div><div class="txt"><b>検証を中心に再配置</b>する（Security／Verification は“もう2つのチーム”でなく組織の軸）</div></div>
+        <div class="step"><div class="num">3</div><div class="txt">人間に読める“<b>統治の薄膜</b>”だけ残す</div></div>
+      </div>
+
+      <div class="deepest">最深の言い換え：AIに最適な“組織”はたぶん<b>組織ではなく、型付き・証拠付きのデータフロー＋人間統治の薄膜</b>。「チーム」はその人間向け投影にすぎない。</div>
+
+      <div class="spectrum">
+        <div class="track"><div class="pin"></div></div>
+        <div class="lab"><span class="l">◀ 可読性（人間組織）</span><span class="r">最適性（AIネイティブ） ▶</span></div>
+        <div class="now">緊張は「可読性 vs 最適性」。tehai は今やや左 — 薄膜は残し、エンジンを右へ。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="mono">手配 / tehai · 設計検討 · 可読性 vs 最適性</span>
+    <span class="mono">github.com/akihidem/tehai-core</span>
+  </footer>
+
+</div>
+</body>
+</html>

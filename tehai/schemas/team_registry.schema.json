@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tehai.local/schemas/team_registry.schema.json",
+  "title": "TeamTemplate",
+  "description": "A registered AI team. Teams are selected, never fabricated at runtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["team_id", "team_name", "mission", "internal_agents", "allowed_task_types"],
+  "properties": {
+    "team_id": { "type": "string", "minLength": 1 },
+    "team_name": { "type": "string", "minLength": 1 },
+    "mission": { "type": "string", "minLength": 1 },
+    "responsibilities": { "type": "array", "items": { "type": "string" } },
+    "internal_agents": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "allowed_task_types": { "type": "array", "items": { "type": "string" } },
+    "forbidden_task_types": { "type": "array", "items": { "type": "string" } },
+    "required_inputs": { "type": "array", "items": { "type": "string" } },
+    "expected_outputs": { "type": "array", "items": { "type": "string" } },
+    "review_requirements": { "type": "array", "items": { "type": "string" } },
+    "escalation_rules": { "type": "array", "items": { "type": "string" } },
+    "matches_keywords": { "type": "array", "items": { "type": "string" } },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "role", "task_type"],
+        "properties": {
+          "key": { "type": "string" },
+          "title": { "type": "string" },
+          "role": { "type": "string" },
+          "task_type": { "type": "string" },
+          "depends_on": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
