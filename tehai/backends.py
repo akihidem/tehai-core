@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
+import sys
 from abc import ABC, abstractmethod
 
 from .models import ModelTier
@@ -507,6 +509,48 @@ class EnsembleBackend(ModelBackend):
             out = cands[0]
         self.last_usage = getattr(agg, "last_usage", None)
         return out
+
+
+class ToolBackend(ModelBackend):
+    """Program-aided (PAL) wrapper — the model solves by WRITING Python that prints the
+    answer; we run it and return stdout. Closes 'shared blind spot' gaps a small model
+    can express as code but can't do in its head (e.g. exact arithmetic). Falls back to
+    the model's direct answer if no code is produced or it fails.
+
+    Best applied selectively (math/computational classes); forcing code on a 'write
+    prose' task hurts. SECURITY: runs model-generated code in a subprocess (opt-in,
+    like --sandbox). Wraps any ModelBackend (including an EnsembleBackend).
+    """
+
+    name = "tool"
+
+    _PY_FENCE = re.compile(r"```(?:python|py)?\n(.*?)```", re.DOTALL)
+
+    def __init__(self, backend, timeout: int = 15):
+        self.backend = backend
+        self.timeout = timeout
+        self.available = getattr(backend, "available", False)
+        self.last_usage = None
+        self.last_code = None
+
+    def complete(self, prompt: str, tier: ModelTier, **kwargs) -> str:
+        pal = (f"{prompt}\n\nSolve by writing a short Python 3 program that computes the "
+               "answer and prints ONLY the final answer with print(). Return ONLY the "
+               "code in a ```python code block.")
+        raw = self.backend.complete(pal, tier, **kwargs)
+        self.last_usage = getattr(self.backend, "last_usage", None)
+        blocks = self._PY_FENCE.findall(raw or "")
+        code = max(blocks, key=len) if blocks else (raw or "")
+        self.last_code = code
+        try:
+            proc = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                                  text=True, timeout=self.timeout)
+            out = proc.stdout.strip()
+            if out:
+                return out
+        except Exception:
+            pass
+        return raw  # fall back to the model's direct answer
 
 
 _BACKENDS = {

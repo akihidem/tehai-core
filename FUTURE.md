@@ -152,6 +152,16 @@ Remaining hook points to add as CI stages (each already has a natural home):
   beating the 122B was a measurement bug (reasoning-model code not extracted; tokens
   truncated) — the `_extract_code` fix + per-architecture max_tokens flipped the 122B's
   hard score 0.5→1.0. Cross-architecture comparison needs fair extraction + token budget.
+- **ToolBackend (program-aided) + structured combination ✅ (verified)**: a small model that
+  can't do arithmetic mentally solves it by WRITING Python we run (`ToolBackend`/PAL): 7B+tool
+  went 0/3 → 3/3 on math, matching the 122B. Composing **gama routing × ensemble × tool** into a
+  SOVEREIGN light system (qa→7B+tool, code→Coder, research→hetero) matched the 122B on the
+  6-case hard suite (1.0 = 1.0) and held on a 12-case suite (combined **0.92** vs 122B 0.83 —
+  but the 122B's 2 code losses may be token-truncation, so read as *competitive*, not a clean
+  win). Lesson: **STRUCTURE — route each class to the right light mechanism — beats both copies
+  (useless) and naive ensembling (0.83), and is competitive with a 122B, fully local.** The
+  combined's lone miss (a mod-arithmetic "reasoning" task sent to the ensemble) was a routing
+  gap (compute-able reasoning should route → tool), not a capability gap. Small N, single run.
 - **Sovereign remote floor ✅ (proven on a Mac Studio MLX)**: `ssh-openai` calls an
   OpenAI-compatible server (MLX `mlx_lm.server`, LM Studio, vLLM) over
   `ssh <host> curl localhost:<port>/v1/…` (prompt on stdin, no open port; 0.5–2 s/call).
